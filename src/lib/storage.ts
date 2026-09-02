@@ -8,7 +8,7 @@ const ACHIEVEMENTS_KEY = 'goontrack_achievements_v2';
 export const DEFAULT_SETTINGS: UserSettings = {
   soundEnabled: true,
   hapticsEnabled: true,
-  theme: 'purple',
+  theme: 'obsidian_gold',
   dailyGoalSessions: 2,
   dailyGoalMinutes: 45,
   mascotAlias: 'Blobby',

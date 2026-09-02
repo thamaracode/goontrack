@@ -18,10 +18,26 @@ export interface ThemeDefinition {
 }
 
 export const THEMES: Record<ThemeKey, ThemeDefinition> = {
+  obsidian_gold: {
+    id: 'obsidian_gold',
+    name: 'Obsidian Gold',
+    subtitle: 'Luxury Dark Teal & Amber Gold (Default)',
+    emoji: '👑',
+    unlockLevel: 1,
+    colors: {
+      bg: '#07151D',
+      surface: '#0C222E',
+      surfaceLight: '#133446',
+      surfaceBorder: '#1D4960',
+      accentPrimary: '#F59E0B',
+      accentSecondary: '#EA580C',
+      accentHighlight: '#FDE047',
+    },
+  },
   purple: {
     id: 'purple',
     name: 'Purple Night',
-    subtitle: 'Classic Arcade Default',
+    subtitle: 'Classic Arcade Synth',
     emoji: '🟣',
     unlockLevel: 1,
     colors: {
@@ -150,7 +166,7 @@ export const THEMES: Record<ThemeKey, ThemeDefinition> = {
 
 export function applyThemeVariables(themeKey: ThemeKey): void {
   if (typeof window === 'undefined') return;
-  const theme = THEMES[themeKey] || THEMES.purple;
+  const theme = THEMES[themeKey] || THEMES.obsidian_gold;
   const root = document.documentElement;
 
   root.style.setProperty('--bg-color', theme.colors.bg);

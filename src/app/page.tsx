@@ -150,7 +150,7 @@ export default function AppShell() {
     setSettings(loadedSettings);
     arcadeSound.setEnabled(loadedSettings.soundEnabled);
     haptics.setEnabled(loadedSettings.hapticsEnabled ?? true);
-    applyThemeVariables(loadedSettings.theme || 'purple');
+    applyThemeVariables(loadedSettings.theme || 'obsidian_gold');
 
     refreshData(initialSessions);
   }, [refreshData]);
@@ -245,10 +245,10 @@ export default function AppShell() {
 
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-[#100B1F] flex items-center justify-center font-bold text-goon-purpleLight">
+      <div className="min-h-screen bg-[#07151D] flex items-center justify-center font-bold text-[#F59E0B]">
         <div className="flex flex-col items-center gap-3">
-          <div className="text-4xl animate-bounce">🟣</div>
-          <span className="text-xs uppercase tracking-widest text-goon-muted">LOADING GOONTRACK V2...</span>
+          <div className="text-4xl animate-bounce">👑</div>
+          <span className="text-xs uppercase tracking-widest text-[#94A3B8]">LOADING GOONTRACK V2...</span>
         </div>
       </div>
     );

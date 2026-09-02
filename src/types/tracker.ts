@@ -10,7 +10,7 @@ export interface Session {
 
 export type TabType = 'home' | 'calendar' | 'analytics' | 'records' | 'achievements' | 'recap' | 'history' | 'settings';
 
-export type ThemeKey = 'purple' | 'cyber' | 'sunset' | 'acid' | 'ocean' | 'candy' | 'mono' | 'arcade';
+export type ThemeKey = 'obsidian_gold' | 'purple' | 'cyber' | 'sunset' | 'acid' | 'ocean' | 'candy' | 'mono' | 'arcade';
 
 export interface StreakData {
   currentStreak: number;
@@ -69,44 +69,16 @@ export interface SummaryStats {
   medianDuration: number;
   longestSession: number;
   shortestSession: number;
-  mostActiveDayName: string;
-  mostActiveHourStr: string;
   weekendRatioPct: number;
+  mostActiveHourStr: string;
 }
 
-export interface TimeOfDayBucket {
+export interface ChronotypeHistogramBucket {
   label: string;
-  hourRange: string;
+  timeRange: string;
   sessions: number;
   minutes: number;
   intensityPct: number;
-}
-
-export interface DayOfWeekStat {
-  dayIndex: number;
-  dayName: string;
-  fullName: string;
-  sessions: number;
-  minutes: number;
-  intensityPct: number;
-}
-
-export interface HeatmapTile {
-  date: string;
-  count: number;
-  minutes: number;
-  level: 0 | 1 | 2 | 3 | 4;
-}
-
-export interface PersonalRecords {
-  longestStreak: number;
-  longestSession: number;
-  shortestSession: number;
-  mostActiveDay: string;
-  mostActiveHour: string;
-  maxSessionsInOneDay: number;
-  bestMonthTotalSessions: number;
-  totalLifetimeHours: number;
 }
 
 export interface ExperimentalMetrics {
@@ -117,16 +89,24 @@ export interface ExperimentalMetrics {
   mostCommonMood: MoodEmoji;
 }
 
+export interface PersonalRecords {
+  longestStreakDays: number;
+  longestSessionMins: number;
+  mostSessionsInOneDay: number;
+  highestMonthlyVolumeMins: number;
+  earliestSessionTime: string;
+  latestSessionTime: string;
+}
+
 export interface MonthlyRecap {
   monthName: string;
   year: number;
   totalSessions: number;
-  totalMinutes: number;
-  longestStreak: number;
-  mostActiveDay: string;
-  peakHourStr: string;
-  achievementsUnlockedCount: number;
+  totalHours: number;
   topMood: MoodEmoji;
+  longestStreak: number;
+  consistencyGrade: 'S+' | 'A' | 'B' | 'C' | 'D';
+  badgeUnlockedCount: number;
 }
 
 export interface UserSettings {

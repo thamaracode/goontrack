@@ -21,28 +21,28 @@
         extend: {
           colors: {
             goon: {
-              bg: '#100B1F',
-              surface: '#1A1230',
-              surfaceLight: '#261B45',
-              surfaceBorder: '#37265F',
-              purple: '#8B5CF6',
-              purpleLight: '#A78BFA',
-              pink: '#F472B6',
-              coral: '#FB7185',
-              yellow: '#FACC15',
-              cyan: '#22D3EE',
-              green: '#34D399',
+              bg: '#07151D',
+              surface: '#0C222E',
+              surfaceLight: '#133446',
+              surfaceBorder: '#1D4960',
+              purple: '#F59E0B',
+              purpleLight: '#FBBF24',
+              pink: '#EA580C',
+              coral: '#F97316',
+              yellow: '#FDE047',
+              cyan: '#06B6D4',
+              green: '#10B981',
               text: '#F8FAFC',
-              muted: '#A1A1AA',
+              muted: '#94A3B8',
             }
           },
           boxShadow: {
-            'chunky-purple': '0px 4px 0px 0px #6D28D9',
-            'chunky-pink': '0px 4px 0px 0px #BE185D',
-            'chunky-yellow': '0px 4px 0px 0px #B45309',
+            'chunky-purple': '0px 4px 0px 0px #B45309',
+            'chunky-pink': '0px 4px 0px 0px #C2410C',
+            'chunky-yellow': '0px 4px 0px 0px #A16207',
             'chunky-green': '0px 4px 0px 0px #047857',
             'chunky-cyan': '0px 4px 0px 0px #0E7490',
-            'chunky-dark': '0px 4px 0px 0px #0A0614',
+            'chunky-dark': '0px 4px 0px 0px #040D12',
           }
         }
       }
@@ -51,7 +51,7 @@
 
   <style>
     body {
-      background-color: #100B1F;
+      background-color: #07151D;
       color: #F8FAFC;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       min-height: 100vh;
@@ -201,6 +201,59 @@
       );
     }
 
+    function renderNavIcon(id, isActive) {
+      const cls = `w-5 h-5 ${isActive ? 'text-goon-yellow drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'text-goon-muted'}`;
+      switch(id) {
+        case 'home':
+          return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className={cls}>
+              <path d="M3 10.5L12 3L21 10.5V20C21 20.5523 20.5523 21 20 21H15C14.4477 21 14 20.5523 14 20V14C14 13.4477 13.5523 13 13 13H11C10.4477 13 10 13.4477 10 14V20C10 20.5523 9.55228 21 9 21H4C3.44772 21 3 20.5523 3 20V10.5Z" fill={isActive ? "currentColor" : "none"} fillOpacity={isActive ? 0.2 : 0} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          );
+        case 'calendar':
+          return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className={cls}>
+              <rect x="3" y="4" width="18" height="18" rx="4" fill={isActive ? "currentColor" : "none"} fillOpacity={isActive ? 0.15 : 0} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2.2" strokeLinecap="round"/>
+              <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2.2" strokeLinecap="round"/>
+              <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
+          );
+        case 'analytics':
+          return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className={cls}>
+              <rect x="3" y="13" width="4" height="8" rx="1.5" fill={isActive ? "currentColor" : "none"} fillOpacity={0.3} strokeWidth="2.2" strokeLinecap="round"/>
+              <rect x="10" y="7" width="4" height="14" rx="1.5" fill={isActive ? "currentColor" : "none"} fillOpacity={0.4} strokeWidth="2.2" strokeLinecap="round"/>
+              <rect x="17" y="3" width="4" height="18" rx="1.5" fill={isActive ? "currentColor" : "none"} fillOpacity={0.8} strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
+          );
+        case 'records':
+          return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className={cls}>
+              <path d="M8 21H16M12 17V21M17 4H7C5.89543 4 5 4.89543 5 6V8C5 11.3137 7.68629 14 11 14H13C16.3137 14 19 11.3137 19 8V6C19 4.89543 18.1046 4 17 4Z" fill={isActive ? "currentColor" : "none"} fillOpacity={0.2} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 7H3C2.44772 7 2 7.44772 2 8C2 10.2091 3.79086 12 6 12H7" strokeWidth="2.2" strokeLinecap="round"/>
+              <path d="M19 7H21C21.5523 7 22 7.44772 22 8C22 10.2091 20.2091 12 18 12H17" strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
+          );
+        case 'history':
+          return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className={cls}>
+              <circle cx="12" cy="12" r="9" fill={isActive ? "currentColor" : "none"} fillOpacity={0.15} strokeWidth="2.2" strokeLinecap="round"/>
+              <polyline points="12,7 12,12 15.5,14" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          );
+        case 'settings':
+          return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className={cls}>
+              <circle cx="12" cy="12" r="3.2" fill={isActive ? "currentColor" : "none"} fillOpacity={0.3} strokeWidth="2.2"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          );
+        default:
+          return null;
+      }
+    }
+
     function App() {
       const [sessions, setSessions] = useState(() => {
         try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : []; } catch { return []; }
@@ -317,24 +370,29 @@
 
             <nav className="space-y-1.5 flex-1">
               {[
-                { id: 'home', label: 'Home', icon: '🏠' },
-                { id: 'calendar', label: 'Calendar View', icon: '🗓️' },
-                { id: 'analytics', label: 'Telemetry & Stats', icon: '📊' },
-                { id: 'records', label: 'Personal Records', icon: '🏆' },
-                { id: 'history', label: 'Timeline History', icon: '📈' },
-                { id: 'settings', label: 'Settings & Themes', icon: '⚙️' },
-              ].map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => { sound.pop(650); haptics.tap(); setTab(t.id); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all ${
-                    tab === t.id ? 'bg-goon-surfaceLight text-goon-yellow shadow-chunky-purple border-2 border-goon-purple/50' : 'text-goon-muted hover:text-goon-text'
-                  }`}
-                >
-                  <span className="text-lg">{t.icon}</span>
-                  <span>{t.label}</span>
-                </button>
-              ))}
+                { id: 'home', label: 'Home Dashboard' },
+                { id: 'calendar', label: 'Calendar View' },
+                { id: 'analytics', label: 'Telemetry & Stats' },
+                { id: 'records', label: 'Personal Records' },
+                { id: 'history', label: 'Timeline History' },
+                { id: 'settings', label: 'Settings & Themes' },
+              ].map(t => {
+                const isActive = tab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => { sound.pop(650); haptics.tap(); setTab(t.id); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all ${
+                      isActive ? 'bg-goon-surfaceLight text-goon-yellow shadow-chunky-purple border-2 border-goon-purple/50' : 'text-goon-muted hover:text-goon-text'
+                    }`}
+                  >
+                    <div className="shrink-0 flex items-center justify-center w-6 h-6">
+                      {renderNavIcon(t.id, isActive)}
+                    </div>
+                    <span>{t.label}</span>
+                  </button>
+                );
+              })}
             </nav>
 
             <div className="p-3.5 rounded-2xl bg-goon-surfaceLight border-2 border-goon-surfaceBorder text-center text-xs font-bold text-goon-yellow">
@@ -574,26 +632,31 @@
           </main>
 
           {/* Mobile Bottom Navigation */}
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-goon-bg/95 border-t-2 border-goon-surfaceBorder p-2 flex justify-around">
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-goon-bg/95 backdrop-blur-md border-t-2 border-goon-surfaceBorder p-2 flex justify-around">
             {[
-              { id: 'home', label: 'Home', icon: '🏠' },
-              { id: 'calendar', label: 'Cal', icon: '🗓️' },
-              { id: 'analytics', label: 'Stats', icon: '📊' },
-              { id: 'records', label: 'Records', icon: '🏆' },
-              { id: 'history', label: 'History', icon: '📈' },
-              { id: 'settings', label: 'Settings', icon: '⚙️' },
-            ].map(t => (
-              <button
-                key={t.id}
-                onClick={() => { sound.pop(700); haptics.tap(); setTab(t.id); }}
-                className={`flex flex-col items-center py-1 px-3 rounded-2xl ${
-                  tab === t.id ? 'bg-goon-surfaceLight text-goon-yellow font-black border border-goon-purple/40 shadow-chunky-purple' : 'text-goon-muted'
-                }`}
-              >
-                <span className="text-xl">{t.icon}</span>
-                <span className="text-[10px] font-bold">{t.label}</span>
-              </button>
-            ))}
+              { id: 'home', label: 'Home' },
+              { id: 'calendar', label: 'Cal' },
+              { id: 'analytics', label: 'Stats' },
+              { id: 'records', label: 'Records' },
+              { id: 'history', label: 'History' },
+              { id: 'settings', label: 'Settings' },
+            ].map(t => {
+              const isActive = tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => { sound.pop(700); haptics.tap(); setTab(t.id); }}
+                  className={`flex flex-col items-center py-1.5 px-3 rounded-2xl ${
+                    isActive ? 'bg-goon-surfaceLight text-goon-yellow font-black border border-goon-purple/40 shadow-chunky-purple' : 'text-goon-muted'
+                  }`}
+                >
+                  <div className="flex items-center justify-center w-6 h-6 mb-0.5">
+                    {renderNavIcon(t.id, isActive)}
+                  </div>
+                  <span className="text-[10px] font-bold">{t.label}</span>
+                </button>
+              );
+            })}
           </nav>
 
           {/* Fast Log Session Bottom Sheet */}
