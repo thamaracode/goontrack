@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { UserSettings, ThemeKey, XPState } from '../../types/tracker';
 import { ChunkyCard } from '../ui/ChunkyCard';
+import { ResetDataModal } from '../modals/ResetDataModal';
 import { THEMES, applyThemeVariables } from '../../lib/themes';
 import { downloadCSV, downloadJSON } from '../../lib/export';
 import { importDataJSON } from '../../lib/storage';
@@ -28,6 +29,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   const themeList = Object.values(THEMES);
 
@@ -74,7 +76,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-goon-text tracking-tight">SETTINGS & THEMES</h2>
-          <p className="text-xs font-bold text-goon-muted">THEMES, AUDIO & CSV DATA SOVEREIGNTY</p>
+          <p className="text-xs font-bold text-goon-muted">THEMES, AUDIO & DATA SOVEREIGNTY</p>
         </div>
         <div className="text-2xl">⚙️</div>
       </div>
@@ -190,7 +192,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       {/* Data Sovereignty & Spreadsheet Export */}
       <ChunkyCard shadowColor="pink" borderColor="pink">
         <h3 className="text-sm font-black text-goon-text mb-4 uppercase tracking-wider">
-          DATA SOVEREIGNTY & EXPORT
+          DATA SOVEREIGNTY & BACKUP
         </h3>
 
         <div className="space-y-3">
@@ -265,27 +267,48 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </div>
             <span className="text-goon-yellow">SEED</span>
           </button>
-
-          {/* Nuke Data */}
-          <button
-            onClick={() => {
-              if (confirm('⚠️ WARNING: This will permanently erase all your sessions, streaks, and XP. Are you sure?')) {
-                onNukeData();
-                arcadeSound.playPop(200);
-                haptics.tap();
-                setFeedback('All local records purged.');
-              }
-            }}
-            className="w-full py-3.5 px-4 rounded-2xl bg-goon-surfaceLight border-2 border-goon-coral/40 text-goon-coral hover:bg-goon-coral/10 font-black text-xs flex items-center justify-between transition-all"
-          >
-            <div className="flex items-center gap-2.5">
-              <span>🗑️</span>
-              <span>FACTORY RESET / NUKE ALL DATA</span>
-            </div>
-            <span>ERASE</span>
-          </button>
         </div>
       </ChunkyCard>
+
+      {/* ⚠️ DANGER ZONE: FACTORY RESET ALL DATA */}
+      <div className="rounded-3xl bg-goon-surface border-2 border-goon-coral/60 p-5 shadow-chunky-pink space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">⚠️</span>
+          <div>
+            <h3 className="text-sm font-black text-goon-coral uppercase tracking-wider">
+              DANGER ZONE: RESET ALL DATA
+            </h3>
+            <p className="text-[11px] font-bold text-goon-muted">
+              Permanently wipe all local sessions, streaks, XP, and history
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            arcadeSound.playPop(400);
+            haptics.tap();
+            setIsResetModalOpen(true);
+          }}
+          className="w-full py-3.5 px-4 rounded-2xl bg-goon-coral/15 border-2 border-goon-coral text-goon-coral hover:bg-goon-coral hover:text-slate-950 font-black text-xs flex items-center justify-between transition-all"
+        >
+          <div className="flex items-center gap-2">
+            <span>🗑️</span>
+            <span>RESET & PURGE ALL LOCAL DATA</span>
+          </div>
+          <span className="font-black uppercase tracking-wider">NUKE</span>
+        </button>
+      </div>
+
+      {/* Reset Confirmation Modal */}
+      <ResetDataModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirmReset={() => {
+          onNukeData();
+          setFeedback('All local database records wiped.');
+        }}
+      />
     </div>
   );
 };

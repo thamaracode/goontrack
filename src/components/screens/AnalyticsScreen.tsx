@@ -9,6 +9,7 @@ import {
   computeExperimentalMetrics,
 } from '../../lib/analytics';
 import { ChunkyCard } from '../ui/ChunkyCard';
+import { CosmicTimeCard } from '../ui/CosmicTimeCard';
 import { DayDetailModal } from '../modals/DayDetailModal';
 import { arcadeSound } from '../../lib/audio';
 import { haptics } from '../../lib/haptics';
@@ -53,6 +54,9 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
         </div>
         <div className="text-2xl">📊</div>
       </div>
+
+      {/* 🌌 Cosmic Time Matrix (Milliseconds to Centuries) */}
+      <CosmicTimeCard totalMinutes={stats.totalMinutes} />
 
       {/* Experimental Funny Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
