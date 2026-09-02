@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TabType, StreakData, XPState } from '../../types/tracker';
+import { NavIcon } from '../vector/NavIcons';
 import { arcadeSound } from '../../lib/audio';
 import { haptics } from '../../lib/haptics';
 
@@ -20,15 +21,15 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   streak,
   xpState,
 }) => {
-  const tabs: { id: TabType; label: string; icon: string }[] = [
-    { id: 'home', label: 'Home Dashboard', icon: '🏠' },
-    { id: 'calendar', label: 'Calendar View', icon: '🗓️' },
-    { id: 'analytics', label: 'Telemetry & Stats', icon: '📊' },
-    { id: 'records', label: 'Personal Records', icon: '🏆' },
-    { id: 'achievements', label: 'Arcade Awards', icon: '🎖️' },
-    { id: 'recap', label: 'Monthly Recap', icon: '📋' },
-    { id: 'history', label: 'Timeline History', icon: '📈' },
-    { id: 'settings', label: 'Settings & Themes', icon: '⚙️' },
+  const tabs: { id: TabType; label: string }[] = [
+    { id: 'home', label: 'Home Dashboard' },
+    { id: 'calendar', label: 'Calendar View' },
+    { id: 'analytics', label: 'Telemetry & Stats' },
+    { id: 'records', label: 'Personal Records' },
+    { id: 'achievements', label: 'Arcade Awards' },
+    { id: 'recap', label: 'Monthly Recap' },
+    { id: 'history', label: 'Timeline History' },
+    { id: 'settings', label: 'Settings & Themes' },
   ];
 
   return (
@@ -93,23 +94,23 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                   : 'text-goon-muted hover:text-goon-text hover:bg-goon-surfaceLight/50'
               }`}
             >
-              <span className="text-lg">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <div className="shrink-0 flex items-center justify-center w-6 h-6">
+                <NavIcon tab={tab.id} isActive={isActive} className="w-5 h-5" />
+              </div>
+              <span className="truncate">{tab.label}</span>
             </button>
           );
         })}
       </nav>
 
-      {/* Mini Streak Pill in footer */}
-      <div className="pt-4 border-t-2 border-goon-surfaceBorder">
-        <div className="p-3 rounded-2xl bg-goon-surfaceLight border border-goon-surfaceBorder text-center">
-          <div className="text-[10px] font-black text-goon-muted uppercase tracking-wider mb-0.5">
-            CURRENT STREAK
-          </div>
-          <div className="text-base font-black text-goon-yellow flex items-center justify-center gap-1">
-            <span>🔥</span>
-            <span>{streak.currentStreak} DAYS</span>
-          </div>
+      {/* Streak Badge Footer */}
+      <div className="p-3.5 rounded-2xl bg-goon-surfaceLight border-2 border-goon-surfaceBorder text-center">
+        <div className="text-[10px] font-black text-goon-muted tracking-wider uppercase mb-0.5">
+          CURRENT ARCADE STREAK
+        </div>
+        <div className="text-sm font-black text-goon-yellow flex items-center justify-center gap-1.5">
+          <span>🔥</span>
+          <span>{streak.currentStreak} DAYS LOCKED IN</span>
         </div>
       </div>
     </aside>

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { TabType } from '../../types/tracker';
+import { NavIcon } from '../vector/NavIcons';
 import { arcadeSound } from '../../lib/audio';
 import { haptics } from '../../lib/haptics';
 
@@ -14,13 +15,13 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   currentTab,
   onSelectTab,
 }) => {
-  const tabs: { id: TabType; label: string; icon: string }[] = [
-    { id: 'home', label: 'Home', icon: '🏠' },
-    { id: 'calendar', label: 'Cal', icon: '🗓️' },
-    { id: 'analytics', label: 'Stats', icon: '📊' },
-    { id: 'records', label: 'Records', icon: '🏆' },
-    { id: 'history', label: 'History', icon: '📈' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
+  const tabs: { id: TabType; label: string }[] = [
+    { id: 'home', label: 'Home' },
+    { id: 'calendar', label: 'Cal' },
+    { id: 'analytics', label: 'Stats' },
+    { id: 'records', label: 'Records' },
+    { id: 'history', label: 'History' },
+    { id: 'settings', label: 'Settings' },
   ];
 
   const handleTabClick = (tabId: TabType) => {
@@ -37,14 +38,16 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <button
             key={tab.id}
             onClick={() => handleTabClick(tab.id)}
-            className={`flex flex-col items-center justify-center py-1 px-2 rounded-2xl transition-all duration-150 relative ${
+            className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-150 relative ${
               isActive
                 ? 'bg-goon-surfaceLight text-goon-yellow font-black border border-goon-purple/40 shadow-chunky-purple scale-105'
                 : 'text-goon-muted hover:text-goon-text'
             }`}
           >
-            <span className="text-lg leading-none mb-1">{tab.icon}</span>
-            <span className="text-[9px] font-bold tracking-tight">{tab.label}</span>
+            <div className="flex items-center justify-center w-6 h-6 mb-0.5">
+              <NavIcon tab={tab.id} isActive={isActive} className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-bold tracking-tight leading-none">{tab.label}</span>
           </button>
         );
       })}
