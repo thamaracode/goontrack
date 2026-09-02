@@ -8,6 +8,7 @@ import {
   Achievement,
   StreakData,
   SummaryStats,
+  XPState,
   TabType,
   MoodEmoji,
 } from '../types/tracker';
@@ -26,12 +27,18 @@ import {
 } from '../lib/storage';
 import { calculateStreak, computeSummaryStats } from '../lib/analytics';
 import { evaluateAchievements, DEFAULT_ACHIEVEMENTS } from '../lib/achievements';
+import { computeTotalXP } from '../lib/xp';
+import { applyThemeVariables } from '../lib/themes';
 import { arcadeSound } from '../lib/audio';
+import { haptics } from '../lib/haptics';
 
 import { DesktopSidebar } from '../components/navigation/DesktopSidebar';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { HomeScreen } from '../components/screens/HomeScreen';
+import { CalendarScreen } from '../components/screens/CalendarScreen';
 import { AnalyticsScreen } from '../components/screens/AnalyticsScreen';
+import { RecordsScreen } from '../components/screens/RecordsScreen';
+import { MonthlyRecapScreen } from '../components/screens/MonthlyRecapScreen';
 import { AchievementsScreen } from '../components/screens/AchievementsScreen';
 import { HistoryScreen } from '../components/screens/HistoryScreen';
 import { SettingsScreen } from '../components/screens/SettingsScreen';
@@ -49,6 +56,9 @@ export default function AppShell() {
     longestStreak: 0,
     isActiveToday: false,
     lastActiveDate: null,
+    bestWeekCount: 0,
+    bestMonthCount: 0,
+    streakFreezesAvailable: 1,
   });
   const [stats, setStats] = useState<SummaryStats>({
     todaySessions: 0,
@@ -60,21 +70,33 @@ export default function AppShell() {
     totalSessions: 0,
     totalMinutes: 0,
     avgDuration: 0,
+    medianDuration: 0,
     longestSession: 0,
+    shortestSession: 0,
     mostActiveDayName: 'None',
     mostActiveHourStr: 'None',
+    weekendRatioPct: 0,
+  });
+  const [xpState, setXpState] = useState<XPState>({
+    level: 1,
+    currentXP: 0,
+    nextLevelXP: 250,
+    totalXP: 0,
+    title: 'Novice Tracker',
+    progressPct: 0,
   });
 
   // Modal States
   const [isLogOpen, setIsLogOpen] = useState(false);
   const [isLiveTimerOpen, setIsLiveTimerOpen] = useState(false);
+  const [logInitialDate, setLogInitialDate] = useState<string | undefined>(undefined);
 
   // Confetti helper
   const triggerConfetti = useCallback(() => {
     try {
       confetti({
-        particleCount: 75,
-        spread: 60,
+        particleCount: 85,
+        spread: 70,
         origin: { y: 0.65 },
         colors: ['#8B5CF6', '#F472B6', '#FACC15', '#22D3EE', '#34D399'],
       });
@@ -91,6 +113,16 @@ export default function AppShell() {
     const computedStats = computeSummaryStats(currentSessions);
     setStats(computedStats);
 
+    const computedXP = computeTotalXP(currentSessions, computedStreak);
+    setXpState((prev) => {
+      if (prev.level > 0 && computedXP.level > prev.level) {
+        arcadeSound.playAchievementFanfare();
+        haptics.levelUp();
+        triggerConfetti();
+      }
+      return computedXP;
+    });
+
     const currentAch = loadAchievements();
     const { updated, newlyUnlocked } = evaluateAchievements(
       currentSessions,
@@ -103,11 +135,12 @@ export default function AppShell() {
 
     if (newlyUnlocked.length > 0) {
       arcadeSound.playAchievementFanfare();
+      haptics.levelUp();
       triggerConfetti();
     }
   }, [triggerConfetti]);
 
-  // Initial Data Load (clean empty state by default)
+  // Initial Data Load
   useEffect(() => {
     setIsClient(true);
     const initialSessions = loadSessions();
@@ -116,17 +149,32 @@ export default function AppShell() {
     setSessions(initialSessions);
     setSettings(loadedSettings);
     arcadeSound.setEnabled(loadedSettings.soundEnabled);
+    haptics.setEnabled(loadedSettings.hapticsEnabled ?? true);
+    applyThemeVariables(loadedSettings.theme || 'purple');
 
     refreshData(initialSessions);
   }, [refreshData]);
 
   // Handlers
-  const handleSaveSession = (newSessionData: { duration: number; mood: MoodEmoji; note?: string }) => {
+  const handleSaveSession = (newSessionData: {
+    duration: number;
+    mood: MoodEmoji;
+    note?: string;
+    customDate?: string;
+  }) => {
+    let timestamp = new Date().toISOString();
+    if (newSessionData.customDate) {
+      const [y, m, d] = newSessionData.customDate.split('-').map(Number);
+      const customD = new Date();
+      customD.setFullYear(y, m - 1, d);
+      timestamp = customD.toISOString();
+    }
+
     const saved = addSession({
       duration: newSessionData.duration,
       mood: newSessionData.mood,
       note: newSessionData.note,
-      timestamp: new Date().toISOString(),
+      timestamp,
     });
     const updated = [saved, ...sessions];
     setSessions(updated);
@@ -145,6 +193,7 @@ export default function AppShell() {
     setSessions(updated);
     refreshData(updated);
     arcadeSound.playSaveSession();
+    haptics.success();
     triggerConfetti();
   };
 
@@ -158,6 +207,8 @@ export default function AppShell() {
     setSettings(newSettings);
     saveSettings(newSettings);
     arcadeSound.setEnabled(newSettings.soundEnabled);
+    haptics.setEnabled(newSettings.hapticsEnabled);
+    applyThemeVariables(newSettings.theme);
   };
 
   const handleSeedDemo = () => {
@@ -175,9 +226,20 @@ export default function AppShell() {
       longestStreak: 0,
       isActiveToday: false,
       lastActiveDate: null,
+      bestWeekCount: 0,
+      bestMonthCount: 0,
+      streakFreezesAvailable: 1,
     };
     setStreak(resetStreak);
     setStats(computeSummaryStats([]));
+    setXpState({
+      level: 1,
+      currentXP: 0,
+      nextLevelXP: 250,
+      totalXP: 0,
+      title: 'Novice Tracker',
+      progressPct: 0,
+    });
     setAchievements(DEFAULT_ACHIEVEMENTS);
   };
 
@@ -186,7 +248,7 @@ export default function AppShell() {
       <div className="min-h-screen bg-[#100B1F] flex items-center justify-center font-bold text-goon-purpleLight">
         <div className="flex flex-col items-center gap-3">
           <div className="text-4xl animate-bounce">🟣</div>
-          <span className="text-xs uppercase tracking-widest text-goon-muted">LOADING GOONTRACK...</span>
+          <span className="text-xs uppercase tracking-widest text-goon-muted">LOADING GOONTRACK V2...</span>
         </div>
       </div>
     );
@@ -198,8 +260,12 @@ export default function AppShell() {
       <DesktopSidebar
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
-        onOpenLog={() => setIsLogOpen(true)}
+        onOpenLog={() => {
+          setLogInitialDate(undefined);
+          setIsLogOpen(true);
+        }}
         streak={streak}
+        xpState={xpState}
       />
 
       {/* Main Content Viewport */}
@@ -209,22 +275,58 @@ export default function AppShell() {
             sessions={sessions}
             streak={streak}
             stats={stats}
-            onOpenLog={() => setIsLogOpen(true)}
+            xpState={xpState}
+            onOpenLog={() => {
+              setLogInitialDate(undefined);
+              setIsLogOpen(true);
+            }}
             onOpenLiveTimer={() => setIsLiveTimerOpen(true)}
             onQuickLog={handleQuickLog}
+          />
+        )}
+
+        {currentTab === 'calendar' && (
+          <CalendarScreen
+            sessions={sessions}
+            streak={streak}
+            onAddSessionOnDate={(dStr) => {
+              setLogInitialDate(dStr);
+              setIsLogOpen(true);
+            }}
+            onDeleteSession={handleDeleteSession}
           />
         )}
 
         {currentTab === 'analytics' && (
           <AnalyticsScreen
             sessions={sessions}
+            streak={streak}
             stats={stats}
+            onAddSessionOnDate={(dStr) => {
+              setLogInitialDate(dStr);
+              setIsLogOpen(true);
+            }}
+            onDeleteSession={handleDeleteSession}
+          />
+        )}
+
+        {currentTab === 'records' && (
+          <RecordsScreen
+            sessions={sessions}
+            streak={streak}
           />
         )}
 
         {currentTab === 'achievements' && (
           <AchievementsScreen
             achievements={achievements}
+          />
+        )}
+
+        {currentTab === 'recap' && (
+          <MonthlyRecapScreen
+            sessions={sessions}
+            streak={streak}
           />
         )}
 
@@ -238,6 +340,7 @@ export default function AppShell() {
         {currentTab === 'settings' && (
           <SettingsScreen
             settings={settings}
+            xpState={xpState}
             onUpdateSettings={handleUpdateSettings}
             onSeedDemoData={handleSeedDemo}
             onNukeData={handleNukeData}
@@ -259,14 +362,20 @@ export default function AppShell() {
       {/* Modals / Bottom Sheets */}
       <LogSessionSheet
         isOpen={isLogOpen}
-        onClose={() => setIsLogOpen(false)}
+        onClose={() => {
+          setIsLogOpen(false);
+          setLogInitialDate(undefined);
+        }}
         onSave={handleSaveSession}
+        currentStreak={streak.currentStreak}
+        initialDateStr={logInitialDate}
       />
 
       <LiveTimerSheet
         isOpen={isLiveTimerOpen}
         onClose={() => setIsLiveTimerOpen(false)}
         onSave={handleSaveSession}
+        currentStreak={streak.currentStreak}
       />
     </div>
   );

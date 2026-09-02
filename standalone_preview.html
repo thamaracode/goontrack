@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
-  <title>GOONTRACK — Personal Habit Arcade</title>
+  <title>GOONTRACK V2 — Personal Habit Arcade</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- React & ReactDOM CDN -->
@@ -40,6 +40,8 @@
             'chunky-purple': '0px 4px 0px 0px #6D28D9',
             'chunky-pink': '0px 4px 0px 0px #BE185D',
             'chunky-yellow': '0px 4px 0px 0px #B45309',
+            'chunky-green': '0px 4px 0px 0px #047857',
+            'chunky-cyan': '0px 4px 0px 0px #0E7490',
             'chunky-dark': '0px 4px 0px 0px #0A0614',
           }
         }
@@ -54,7 +56,9 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       min-height: 100vh;
       min-height: 100dvh;
+      overflow-x: hidden;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
   </style>
 </head>
@@ -104,34 +108,26 @@
       }
     };
 
-    const STORAGE_KEY = 'goontrack_standalone_v2';
+    const haptics = {
+      tap() { if ('vibrate' in navigator) { try { navigator.vibrate(15); }catch(e){} } },
+      success() { if ('vibrate' in navigator) { try { navigator.vibrate([30, 40, 50]); }catch(e){} } },
+      levelUp() { if ('vibrate' in navigator) { try { navigator.vibrate([60, 40, 80, 40, 120]); }catch(e){} } }
+    };
 
-    function generateSeed() {
-      const moods = ['🙂', '😈', '🫠', '🙂', '😈'];
-      const notes = ['Cruised into deep focus.', 'Degenerate rabbit hole exploration.', 'Committed to the bit.'];
-      const list = [];
-      const now = new Date();
-      for (let i = 11; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(now.getDate() - i);
-        const count = i === 0 ? 2 : (i % 3 === 0 ? 3 : 2);
-        for (let j = 0; j < count; j++) {
-          const sDate = new Date(d);
-          sDate.setHours([2, 14, 18, 21][(i + j) % 4], 30, 0);
-          list.push({
-            id: 's_' + i + '_' + j,
-            timestamp: sDate.toISOString(),
-            duration: [17, 24, 31, 42, 55][(i + j) % 5],
-            mood: moods[(i + j) % moods.length],
-            note: j === 0 ? notes[i % notes.length] : undefined
-          });
-        }
-      }
-      return list;
-    }
+    const STORAGE_KEY = 'goontrack_v2_app';
 
-    // SVG Vector Mascot Component
-    function BlobMascot({ state = 'FIRE', quote = "Ready to start fresh. Tap + LOG to begin!" }) {
+    const TRANSMISSIONS = [
+      { id: '1', cat: 'DISCIPLINE', emoji: '🧠', quote: 'Discipline is choosing what you want most over what you want now.', author: 'Operational Protocol', pose: 'COOL' },
+      { id: '2', cat: 'STOIC', emoji: '🗿', quote: 'You have power over your mind, not outside events. Realize this, and you will find strength.', author: 'Marcus Aurelius', pose: 'NORMAL' },
+      { id: '3', cat: 'CHAOTIC', emoji: '😈', quote: 'If you are going to commit to the bit, commit with maximum statistical density.', author: 'Subroutine 0x99', pose: 'MELTING' },
+      { id: '4', cat: 'MOTIVATION', emoji: '🔥', quote: 'The secret of getting ahead is getting started. The streak begins with day one.', author: 'Mark Twain', pose: 'STREAKING' },
+      { id: '5', cat: 'DARK HUMOR', emoji: '💀', quote: 'Humanity invented supercomputers. You are using this to track your dopamine flux.', author: 'The Machine', pose: 'LOST' },
+      { id: '6', cat: 'LATE NIGHT', emoji: '🌙', quote: 'The midnight hour belongs to dreamers, nocturnal wanderers, and unlogged sessions.', author: 'Night Watch Protocol', pose: 'NIGHT' },
+      { id: '7', cat: 'ACHIEVEMENT', emoji: '🏆', quote: 'Small daily disciplines compounded over time create monumental records.', author: 'Core Engine', pose: 'RECORD' },
+    ];
+
+    function BlobMascot({ state = 'NORMAL', quote = '', size = 'md' }) {
+      const dim = size === 'sm' ? 'w-16 h-16' : 'w-36 h-36 md:w-44 md:h-44';
       return (
         <div className="flex flex-col items-center justify-center select-none">
           {quote && (
@@ -139,18 +135,36 @@
               “{quote}”
             </div>
           )}
-          <div className="w-36 h-36 md:w-44 md:h-44 cursor-pointer hover:scale-105 transition-transform" onClick={() => sound.pop(800)}>
+          <div className={`${dim} cursor-pointer hover:scale-105 transition-transform`} onClick={() => { sound.pop(800); haptics.tap(); }}>
             <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_10px_20px_rgba(139,92,246,0.35)]">
               <ellipse cx="100" cy="180" rx="60" ry="12" fill="#0A0614" opacity="0.6" />
               <path d="M50,150 C20,130 20,80 50,50 C80,20 120,20 150,50 C180,80 180,130 150,150 C120,175 80,175 50,150 Z" fill="url(#mGrad)" stroke="#100B1F" strokeWidth="8" />
               <path d="M65,135 C50,115 50,85 70,65 C90,45 110,45 130,65 C150,85 150,115 135,135 C115,150 85,150 65,135 Z" fill="#A78BFA" opacity="0.35" />
               <path d="M28,110 C15,115 15,125 25,130 C35,135 40,125 35,115 Z" fill="#8B5CF6" stroke="#100B1F" strokeWidth="6" />
               <path d="M172,110 C185,115 185,125 175,130 C165,135 160,125 165,115 Z" fill="#8B5CF6" stroke="#100B1F" strokeWidth="6" />
-              <circle cx="75" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
-              <circle cx="125" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
-              <circle cx="78" cy="83" r="5" fill="#100B1F" />
-              <circle cx="128" cy="83" r="5" fill="#100B1F" />
-              <path d="M80,112 Q100,135 120,112 Z" fill="#F472B6" stroke="#100B1F" strokeWidth="6" />
+              {state === 'STREAKING' ? (
+                <g>
+                  <path d="M80,30 L90,15 L100,28 L110,12 L120,30 Z" fill="#FACC15" stroke="#100B1F" strokeWidth="4" />
+                  <circle cx="75" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
+                  <circle cx="125" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
+                  <circle cx="78" cy="83" r="5" fill="#100B1F" /><circle cx="128" cy="83" r="5" fill="#100B1F" />
+                  <path d="M80,112 Q100,135 120,112 Z" fill="#F472B6" stroke="#100B1F" strokeWidth="6" />
+                </g>
+              ) : state === 'COOL' ? (
+                <g>
+                  <path d="M52,75 L95,75 C95,95 60,95 55,85 Z" fill="#100B1F" stroke="#FACC15" strokeWidth="4" />
+                  <path d="M148,75 L105,75 C105,95 140,95 145,85 Z" fill="#100B1F" stroke="#FACC15" strokeWidth="4" />
+                  <line x1="95" y1="78" x2="105" y2="78" stroke="#FACC15" strokeWidth="4" />
+                  <path d="M85,115 Q105,122 120,110" stroke="#100B1F" strokeWidth="6" fill="none" />
+                </g>
+              ) : (
+                <g>
+                  <circle cx="75" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
+                  <circle cx="125" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
+                  <circle cx="78" cy="83" r="5" fill="#100B1F" /><circle cx="128" cy="83" r="5" fill="#100B1F" />
+                  <path d="M80,112 Q100,135 120,112 Z" fill="#F472B6" stroke="#100B1F" strokeWidth="6" />
+                </g>
+              )}
               <circle cx="55" cy="102" r="10" fill="#F472B6" opacity="0.6" />
               <circle cx="145" cy="102" r="10" fill="#F472B6" opacity="0.6" />
               <defs>
@@ -166,62 +180,81 @@
 
     function App() {
       const [sessions, setSessions] = useState(() => {
-        try {
-          const s = localStorage.getItem(STORAGE_KEY);
-          return s ? JSON.parse(s) : [];
-        } catch {
-          return [];
-        }
+        try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : []; } catch { return []; }
       });
-
       const [tab, setTab] = useState('home');
       const [isLogOpen, setIsLogOpen] = useState(false);
       const [formDuration, setFormDuration] = useState(24);
       const [formMood, setFormMood] = useState('🙂');
       const [formNote, setFormNote] = useState('');
+      const [qOffset, setQOffset] = useState(0);
+      const [calDate, setCalDate] = useState(() => new Date());
+      const [selectedDate, setSelectedDate] = useState(null);
 
       useEffect(() => {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions)); } catch(e){}
       }, [sessions]);
 
-      // Streak calculation
-      const dates = new Set(sessions.map(s => s.timestamp.split('T')[0]));
+      // Streak & Stats
+      const dateSet = new Set(sessions.map(s => s.timestamp.split('T')[0]));
       let streak = 0;
       let d = new Date();
-      while (dates.has(d.toISOString().split('T')[0])) {
+      while (dateSet.has(d.toISOString().split('T')[0])) {
         streak++;
         d.setDate(d.getDate() - 1);
       }
       if (streak === 0) {
-        let y = new Date();
-        y.setDate(y.getDate() - 1);
-        while (dates.has(y.toISOString().split('T')[0])) {
+        let y = new Date(); y.setDate(y.getDate() - 1);
+        while (dateSet.has(y.toISOString().split('T')[0])) {
           streak++;
           y.setDate(y.getDate() - 1);
         }
       }
 
-      const totalMins = sessions.reduce((acc, cur) => acc + cur.duration, 0);
+      // XP & Level
+      const totalXP = sessions.reduce((acc, s) => acc + (50 + s.duration * 2), 0);
+      const level = Math.max(1, Math.floor(totalXP / 250) + 1);
+      const levelProgress = ((totalXP % 250) / 250) * 100;
+
+      const totalMins = sessions.reduce((acc, s) => acc + s.duration, 0);
       const totalHrs = Math.floor(totalMins / 60);
 
-      const addSession = (dur, m, n) => {
-        const newS = {
-          id: 's_' + Date.now(),
-          timestamp: new Date().toISOString(),
-          duration: Number(dur),
-          mood: m,
-          note: n || undefined
-        };
+      const transmission = TRANSMISSIONS[qOffset % TRANSMISSIONS.length];
+
+      const addSession = (dur, m, n, customD) => {
+        let ts = new Date().toISOString();
+        if (customD) {
+          const [y, mm, dd] = customD.split('-').map(Number);
+          const dt = new Date(); dt.setFullYear(y, mm - 1, dd);
+          ts = dt.toISOString();
+        }
+        const newS = { id: 's_' + Date.now(), timestamp: ts, duration: Number(dur), mood: m, note: n || undefined };
         setSessions(prev => [newS, ...prev]);
         sound.save();
+        haptics.success();
         try { confetti({ particleCount: 75, spread: 60, origin: { y: 0.65 } }); } catch(e){}
       };
+
+      // Calendar helpers
+      const cYear = calDate.getFullYear();
+      const cMonth = calDate.getMonth();
+      const cMonthName = calDate.toLocaleString('default', { month: 'long' }).toUpperCase();
+      const firstDay = new Date(cYear, cMonth, 1).getDay();
+      const daysInM = new Date(cYear, cMonth + 1, 0).getDate();
+
+      const calCells = [];
+      for (let i = 0; i < firstDay; i++) calCells.push({ empty: true, key: 'e_' + i });
+      for (let day = 1; day <= daysInM; day++) {
+        const dStr = `${cYear}-${String(cMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayS = sessions.filter(s => s.timestamp.startsWith(dStr));
+        calCells.push({ empty: false, day, dateStr: dStr, count: dayS.length, mins: dayS.reduce((acc, s) => acc + s.duration, 0), topMood: dayS[0]?.mood });
+      }
 
       return (
         <div className="min-h-screen bg-goon-bg flex flex-col md:flex-row text-goon-text">
           {/* Desktop Sidebar */}
           <aside className="hidden md:flex flex-col w-64 bg-goon-surface border-r-2 border-goon-surfaceBorder p-6 shrink-0 h-screen sticky top-0 select-none">
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center gap-3 mb-6">
               <span className="text-3xl">🟣</span>
               <div>
                 <h1 className="text-xl font-black text-goon-text">GOONTRACK</h1>
@@ -229,29 +262,41 @@
               </div>
             </div>
 
+            {/* Level Pill */}
+            <div className="mb-6 p-3 rounded-2xl bg-goon-surfaceLight border border-goon-surfaceBorder">
+              <div className="flex items-center justify-between text-xs font-black mb-1">
+                <span className="text-goon-yellow">LVL {level}</span>
+                <span className="text-goon-muted">{Math.round(levelProgress)}%</span>
+              </div>
+              <div className="w-full bg-goon-bg h-1.5 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-goon-purple to-goon-yellow" style={{ width: `${levelProgress}%` }} />
+              </div>
+            </div>
+
             <button
-              onClick={() => { sound.pop(880); setIsLogOpen(true); }}
-              className="w-full mb-8 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-goon-pink via-goon-coral to-goon-yellow text-slate-950 font-black text-sm shadow-chunky-pink hover:scale-[1.02] transition-all"
+              onClick={() => { sound.pop(880); haptics.tap(); setIsLogOpen(true); }}
+              className="w-full mb-6 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-goon-pink via-goon-coral to-goon-yellow text-slate-950 font-black text-sm shadow-chunky-pink hover:scale-[1.02] transition-all"
             >
               ＋ LOG SESSION
             </button>
 
-            <nav className="space-y-2 flex-1">
+            <nav className="space-y-1.5 flex-1">
               {[
                 { id: 'home', label: 'Home', icon: '🏠' },
-                { id: 'analytics', label: 'Stats', icon: '📊' },
-                { id: 'achievements', label: 'Awards', icon: '🏆' },
-                { id: 'history', label: 'History', icon: '📈' },
-                { id: 'settings', label: 'Settings', icon: '⚙️' },
+                { id: 'calendar', label: 'Calendar View', icon: '🗓️' },
+                { id: 'analytics', label: 'Telemetry & Stats', icon: '📊' },
+                { id: 'records', label: 'Personal Records', icon: '🏆' },
+                { id: 'history', label: 'Timeline History', icon: '📈' },
+                { id: 'settings', label: 'Settings & Themes', icon: '⚙️' },
               ].map(t => (
                 <button
                   key={t.id}
-                  onClick={() => { sound.pop(650); setTab(t.id); }}
+                  onClick={() => { sound.pop(650); haptics.tap(); setTab(t.id); }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all ${
                     tab === t.id ? 'bg-goon-surfaceLight text-goon-yellow shadow-chunky-purple border-2 border-goon-purple/50' : 'text-goon-muted hover:text-goon-text'
                   }`}
                 >
-                  <span className="text-xl">{t.icon}</span>
+                  <span className="text-lg">{t.icon}</span>
                   <span>{t.label}</span>
                 </button>
               ))}
@@ -262,7 +307,7 @@
             </div>
           </aside>
 
-          {/* Main Content Area */}
+          {/* Main Content */}
           <main className="flex-1 max-w-3xl mx-auto w-full px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
             {/* Top Bar for Mobile */}
             <div className="flex items-center justify-between md:hidden">
@@ -279,20 +324,42 @@
               <div className="space-y-6">
                 {/* Hero Mascot */}
                 <div className="rounded-4xl bg-gradient-to-b from-goon-surfaceLight to-goon-surface border-2 border-goon-purple/40 p-6 md:p-8 text-center shadow-chunky-purple">
-                  <BlobMascot quote={sessions.length === 0 ? "Ready to start fresh. Tap + LOG to begin!" : "You're absolutely committed to the bit."} />
+                  <BlobMascot state={streak >= 7 ? 'STREAKING' : 'NORMAL'} quote={streak >= 7 ? "You're absolutely committed to the bit." : "Ready to lock in. Tap + LOG to begin!"} />
                   <div className="mt-4 mb-2">
                     <span className="text-5xl md:text-7xl font-black text-goon-yellow drop-shadow-[0_4px_0_#B45309]">{streak}</span>
                     <span className="text-2xl md:text-4xl font-extrabold text-goon-text ml-3">DAYS STREAK 🔥</span>
                   </div>
-                  <p className="text-xs font-bold text-goon-muted mb-6">
-                    {sessions.length === 0 ? "No active sessions. Log a session to initialize day 1." : "“You're absolutely committed to the bit.”"}
-                  </p>
+                  <div className="flex justify-center gap-2 mb-6">
+                    <span className="px-3 py-1 rounded-xl bg-goon-surface text-xs font-bold text-goon-cyan">LVL {level}</span>
+                    <span className="px-3 py-1 rounded-xl bg-goon-surface text-xs font-bold text-goon-pink">{sessions.length} sessions</span>
+                    <span className="px-3 py-1 rounded-xl bg-goon-surface text-xs font-bold text-goon-yellow">{totalHrs}h {totalMins % 60}m</span>
+                  </div>
                   <button
-                    onClick={() => { sound.pop(880); setIsLogOpen(true); }}
+                    onClick={() => { sound.pop(880); haptics.tap(); setIsLogOpen(true); }}
                     className="w-full max-w-sm py-4 rounded-2xl bg-gradient-to-r from-goon-yellow via-goon-coral to-goon-pink text-slate-950 font-black text-base shadow-chunky-yellow hover:scale-[1.02] transition-all"
                   >
                     ＋ LOG SESSION
                   </button>
+                </div>
+
+                {/* ✦ Daily Transmission Card */}
+                <div className="rounded-3xl bg-goon-surface border-2 border-goon-purple/40 p-5 shadow-chunky-purple">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black text-goon-yellow">✦ DAILY TRANSMISSION</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-goon-surfaceLight text-goon-pink">{transmission.emoji} {transmission.cat}</span>
+                    </div>
+                    <button onClick={() => { sound.pop(750); haptics.tap(); setQOffset(q => q + 1); }} className="text-xs font-bold text-goon-muted hover:text-goon-yellow">🎲 REROLL</button>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-sm font-extrabold italic">“{transmission.quote}”</p>
+                      <div className="text-[11px] font-bold text-goon-cyan mt-1">— {transmission.author}</div>
+                    </div>
+                    <div className="shrink-0">
+                      <BlobMascot state={transmission.pose} size="sm" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* 3 Chunky Cards */}
@@ -316,10 +383,51 @@
               </div>
             )}
 
+            {tab === 'calendar' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-black">CALENDAR VIEW</h2>
+                  <span className="text-xs font-bold text-goon-yellow">{cMonthName} {cYear}</span>
+                </div>
+                <div className="p-4 rounded-3xl bg-goon-surface border-2 border-goon-purple/50 shadow-chunky-purple">
+                  <div className="flex justify-between mb-4">
+                    <button onClick={() => setCalDate(new Date(cYear, cMonth - 1, 1))} className="px-3 py-1 bg-goon-surfaceLight rounded-xl text-xs font-bold">‹ PREV</button>
+                    <span className="font-black text-sm text-goon-yellow">{cMonthName} {cYear}</span>
+                    <button onClick={() => setCalDate(new Date(cYear, cMonth + 1, 1))} className="px-3 py-1 bg-goon-surfaceLight rounded-xl text-xs font-bold">NEXT ›</button>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-bold text-goon-muted mb-2">
+                    {['S','M','T','W','T','F','S'].map((d, i) => <div key={i}>{d}</div>)}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {calCells.map((c, i) => (
+                      c.empty ? <div key={c.key} className="h-16 rounded-xl bg-goon-surfaceLight/20 opacity-30" /> : (
+                        <div
+                          key={c.dateStr}
+                          onClick={() => { sound.pop(600); haptics.tap(); setSelectedDate(c.dateStr); }}
+                          className={`h-16 p-1.5 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all hover:scale-105 ${
+                            c.count > 0 ? 'border-goon-purple bg-goon-surfaceLight' : 'border-goon-surfaceBorder bg-goon-surfaceLight/40'
+                          }`}
+                        >
+                          <span className="text-[11px] font-black">{c.day}</span>
+                          {c.count > 0 ? (
+                            <div className="flex flex-col items-center">
+                              <span className="text-base leading-none">{c.topMood || '🙂'}</span>
+                              <span className="text-[9px] font-bold text-goon-cyan">{c.mins}m</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {tab === 'analytics' && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-black">WEEKLY ACTIVITY</h2>
+                <h2 className="text-2xl font-black">TELEMETRY & STATS</h2>
                 <div className="p-6 rounded-3xl bg-goon-surface border-2 border-goon-purple/60 shadow-chunky-purple">
+                  <h3 className="text-sm font-black text-goon-yellow mb-4">WEEKLY CADENCE</h3>
                   <div className="flex items-end justify-between gap-2 h-44 border-b-2 border-goon-surfaceBorder pb-2">
                     {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
                       <div key={idx} className="flex-1 flex flex-col items-center justify-end h-full">
@@ -339,24 +447,18 @@
               </div>
             )}
 
-            {tab === 'achievements' && (
+            {tab === 'records' && (
               <div className="space-y-4">
-                <h2 className="text-2xl font-black">ARCADE TROPHIES</h2>
+                <h2 className="text-2xl font-black">PERSONAL RECORDS 🏆</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[
-                    { title: 'FIRST BLOOD', desc: 'Log your first session', emoji: '⚡', unlocked: sessions.length >= 1 },
-                    { title: '7 DAYS 🔥', desc: 'Reach a 7-day streak', emoji: '🔥', unlocked: streak >= 7 },
-                    { title: 'NIGHT OWL 🌙', desc: 'Log late night hours', emoji: '🦉', unlocked: false },
-                    { title: 'CENTURY 💯', desc: 'Reach 100 total sessions', emoji: '🏆', unlocked: sessions.length >= 100 },
-                  ].map((ach, i) => (
-                    <div key={i} className={`p-5 rounded-3xl bg-goon-surface border-2 border-goon-surfaceBorder shadow-chunky-purple flex items-center gap-4 ${ach.unlocked ? '' : 'opacity-60'}`}>
-                      <span className="text-4xl">{ach.emoji}</span>
-                      <div>
-                        <div className="font-black text-sm">{ach.title}</div>
-                        <div className="text-xs text-goon-muted font-bold">{ach.desc}</div>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="p-5 rounded-3xl bg-goon-surface border-2 border-goon-yellow/60 shadow-chunky-yellow">
+                    <div className="text-xs font-black text-goon-yellow">LONGEST STREAK</div>
+                    <div className="text-3xl font-black mt-1">{streak} DAYS</div>
+                  </div>
+                  <div className="p-5 rounded-3xl bg-goon-surface border-2 border-goon-pink/60 shadow-chunky-pink">
+                    <div className="text-xs font-black text-goon-pink">LIFETIME HOURS</div>
+                    <div className="text-3xl font-black mt-1">{totalHrs}h {totalMins % 60}m</div>
+                  </div>
                 </div>
               </div>
             )}
@@ -390,21 +492,11 @@
 
             {tab === 'settings' && (
               <div className="space-y-4">
-                <h2 className="text-2xl font-black">SETTINGS & PRIVACY</h2>
+                <h2 className="text-2xl font-black">SETTINGS & THEMES</h2>
                 <div className="p-5 rounded-3xl bg-goon-surface border-2 border-goon-green shadow-chunky-purple">
                   <div className="font-black text-goon-green">🔒 100% PRIVATE LOCAL STORAGE</div>
                   <div className="text-xs text-goon-muted font-bold mt-1">Zero servers, zero accounts, no tracking.</div>
                 </div>
-                <button
-                  onClick={() => {
-                    const seed = generateSeed();
-                    setSessions(seed);
-                    sound.fanfare();
-                  }}
-                  className="w-full py-3.5 bg-goon-surfaceLight border-2 border-goon-yellow text-goon-yellow rounded-2xl font-black text-xs"
-                >
-                  ⚡ LOAD DEMO TEST DATA (12-DAY STREAK)
-                </button>
                 <button
                   onClick={() => {
                     localStorage.removeItem(STORAGE_KEY);
@@ -423,14 +515,15 @@
           <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-goon-bg/95 border-t-2 border-goon-surfaceBorder p-2 flex justify-around">
             {[
               { id: 'home', label: 'Home', icon: '🏠' },
+              { id: 'calendar', label: 'Cal', icon: '🗓️' },
               { id: 'analytics', label: 'Stats', icon: '📊' },
-              { id: 'achievements', label: 'Awards', icon: '🏆' },
+              { id: 'records', label: 'Records', icon: '🏆' },
               { id: 'history', label: 'History', icon: '📈' },
               { id: 'settings', label: 'Settings', icon: '⚙️' },
             ].map(t => (
               <button
                 key={t.id}
-                onClick={() => { sound.pop(700); setTab(t.id); }}
+                onClick={() => { sound.pop(700); haptics.tap(); setTab(t.id); }}
                 className={`flex flex-col items-center py-1 px-3 rounded-2xl ${
                   tab === t.id ? 'bg-goon-surfaceLight text-goon-yellow font-black border border-goon-purple/40 shadow-chunky-purple' : 'text-goon-muted'
                 }`}
@@ -456,7 +549,7 @@
                 <div>
                   <label className="text-xs font-black text-goon-muted block mb-1">MOOD</label>
                   <div className="flex gap-2">
-                    {['😐', '🙂', '😈', '🫠', '💀'].map(m => (
+                    {['😐', '🙂', '😎', '😈', '🫠', '💀'].map(m => (
                       <button
                         key={m}
                         onClick={() => setFormMood(m)}
@@ -475,6 +568,28 @@
                   className="w-full py-4 bg-gradient-to-r from-goon-yellow via-goon-coral to-goon-pink text-slate-950 font-black rounded-2xl shadow-chunky-yellow"
                 >
                   SAVE SESSION ⚡
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Selected Date Detail Modal */}
+          {selectedDate && (
+            <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
+              <div className="w-full max-w-sm bg-goon-surface rounded-3xl border-2 border-goon-purple p-6 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-black text-sm text-goon-yellow">{selectedDate}</span>
+                  <button onClick={() => setSelectedDate(null)} className="text-goon-muted">✕</button>
+                </div>
+                <button
+                  onClick={() => {
+                    const d = selectedDate;
+                    setSelectedDate(null);
+                    addSession(24, '🙂', 'Calendar Entry', d);
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-goon-purple to-goon-pink rounded-xl font-black text-xs"
+                >
+                  ＋ ADD SESSION FOR THIS DATE
                 </button>
               </div>
             </div>

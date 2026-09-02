@@ -1,4 +1,4 @@
-export type MoodEmoji = '😐' | '🙂' | '😈' | '🫠' | '💀';
+export type MoodEmoji = '😐' | '🙂' | '😎' | '😈' | '🫠' | '💀';
 
 export interface Session {
   id: string;
@@ -8,13 +8,27 @@ export interface Session {
   note?: string;
 }
 
-export type TabType = 'home' | 'analytics' | 'achievements' | 'history' | 'settings';
+export type TabType = 'home' | 'calendar' | 'analytics' | 'records' | 'achievements' | 'recap' | 'history' | 'settings';
+
+export type ThemeKey = 'purple' | 'cyber' | 'sunset' | 'acid' | 'ocean' | 'candy' | 'mono' | 'arcade';
 
 export interface StreakData {
   currentStreak: number;
   longestStreak: number;
   isActiveToday: boolean;
   lastActiveDate: string | null;
+  bestWeekCount: number;
+  bestMonthCount: number;
+  streakFreezesAvailable: number;
+}
+
+export interface XPState {
+  level: number;
+  currentXP: number;
+  nextLevelXP: number;
+  totalXP: number;
+  title: string;
+  progressPct: number;
 }
 
 export type AchievementBadgeKey =
@@ -24,6 +38,9 @@ export type AchievementBadgeKey =
   | 'century'
   | 'marathon'
   | 'consistent_30'
+  | 'the_machine'
+  | 'absolute_unit'
+  | 'early_bird'
   | 'zen_master'
   | 'hyperdrive';
 
@@ -36,6 +53,7 @@ export interface Achievement {
   max: number;
   rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
   emoji: string;
+  xpReward: number;
 }
 
 export interface SummaryStats {
@@ -48,29 +66,73 @@ export interface SummaryStats {
   totalSessions: number;
   totalMinutes: number;
   avgDuration: number;
+  medianDuration: number;
   longestSession: number;
+  shortestSession: number;
   mostActiveDayName: string;
   mostActiveHourStr: string;
+  weekendRatioPct: number;
+}
+
+export interface TimeOfDayBucket {
+  label: string;
+  hourRange: string;
+  sessions: number;
+  minutes: number;
+  intensityPct: number;
 }
 
 export interface DayOfWeekStat {
   dayIndex: number;
-  dayName: string; // 'M', 'T', 'W', 'T', 'F', 'S', 'S'
-  fullName: string; // 'Monday', etc.
+  dayName: string;
+  fullName: string;
   sessions: number;
   minutes: number;
-  intensityPct: number; // 0 to 100 for vector bar height
+  intensityPct: number;
 }
 
 export interface HeatmapTile {
-  date: string; // YYYY-MM-DD
+  date: string;
   count: number;
   minutes: number;
   level: 0 | 1 | 2 | 3 | 4;
 }
 
+export interface PersonalRecords {
+  longestStreak: number;
+  longestSession: number;
+  shortestSession: number;
+  mostActiveDay: string;
+  mostActiveHour: string;
+  maxSessionsInOneDay: number;
+  bestMonthTotalSessions: number;
+  totalLifetimeHours: number;
+}
+
+export interface ExperimentalMetrics {
+  consistencyScore: number;
+  nightOwlScore: number;
+  chaosIndex: number;
+  commitmentHeadline: string;
+  mostCommonMood: MoodEmoji;
+}
+
+export interface MonthlyRecap {
+  monthName: string;
+  year: number;
+  totalSessions: number;
+  totalMinutes: number;
+  longestStreak: number;
+  mostActiveDay: string;
+  peakHourStr: string;
+  achievementsUnlockedCount: number;
+  topMood: MoodEmoji;
+}
+
 export interface UserSettings {
   soundEnabled: boolean;
+  hapticsEnabled: boolean;
+  theme: ThemeKey;
   dailyGoalSessions: number;
   dailyGoalMinutes: number;
   mascotAlias: string;

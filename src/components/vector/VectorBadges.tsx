@@ -43,6 +43,17 @@ export const VectorBadge: React.FC<VectorBadgeProps> = ({
         </svg>
       )}
 
+      {badgeKey === 'early_bird' && (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <circle cx="50" cy="50" r="42" fill="#FACC15" stroke="#100B1F" strokeWidth="6" />
+          <circle cx="50" cy="50" r="24" fill="#FF5A78" stroke="#100B1F" strokeWidth="4" />
+          <line x1="50" y1="14" x2="50" y2="22" stroke="#100B1F" strokeWidth="4" strokeLinecap="round" />
+          <line x1="50" y1="78" x2="50" y2="86" stroke="#100B1F" strokeWidth="4" strokeLinecap="round" />
+          <line x1="14" y1="50" x2="22" y2="50" stroke="#100B1F" strokeWidth="4" strokeLinecap="round" />
+          <line x1="78" y1="50" x2="86" y2="50" stroke="#100B1F" strokeWidth="4" strokeLinecap="round" />
+        </svg>
+      )}
+
       {badgeKey === 'century' && (
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <rect x="15" y="15" width="70" height="70" rx="18" fill="#FACC15" stroke="#100B1F" strokeWidth="6" />
@@ -50,6 +61,27 @@ export const VectorBadge: React.FC<VectorBadgeProps> = ({
           <rect x="44" y="65" width="12" height="12" fill="#8B5CF6" stroke="#100B1F" strokeWidth="4" />
           <rect x="34" y="77" width="32" height="8" rx="3" fill="#100B1F" />
           <text x="50" y="52" fontSize="16" fontWeight="900" textAnchor="middle" fill="#8B5CF6">100</text>
+        </svg>
+      )}
+
+      {badgeKey === 'the_machine' && (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <rect x="20" y="20" width="60" height="60" rx="14" fill="#6366F1" stroke="#100B1F" strokeWidth="6" />
+          <rect x="30" y="32" width="12" height="12" rx="3" fill="#22D3EE" stroke="#100B1F" strokeWidth="3" />
+          <rect x="58" y="32" width="12" height="12" rx="3" fill="#22D3EE" stroke="#100B1F" strokeWidth="3" />
+          <line x1="36" y1="62" x2="64" y2="62" stroke="#FACC15" strokeWidth="6" strokeLinecap="round" />
+          <line x1="50" y1="10" x2="50" y2="20" stroke="#100B1F" strokeWidth="5" strokeLinecap="round" />
+          <circle cx="50" cy="10" r="4" fill="#FF5A78" />
+        </svg>
+      )}
+
+      {badgeKey === 'absolute_unit' && (
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <circle cx="50" cy="50" r="42" fill="#121212" stroke="#FF007F" strokeWidth="6" />
+          <ellipse cx="50" cy="46" rx="20" ry="18" fill="#F8FAFC" stroke="#100B1F" strokeWidth="4" />
+          <circle cx="42" cy="46" r="5" fill="#100B1F" />
+          <circle cx="58" cy="46" r="5" fill="#100B1F" />
+          <rect x="44" y="62" width="12" height="10" rx="2" fill="#F8FAFC" stroke="#100B1F" strokeWidth="3" />
         </svg>
       )}
 

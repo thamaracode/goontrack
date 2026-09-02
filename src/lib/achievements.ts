@@ -4,33 +4,47 @@ import { formatDateKey } from './analytics';
 export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'first_blood',
-    title: 'FIRST BLOOD',
+    title: 'FIRST LOG',
     description: 'Log your very first session to initialize Goontrack.',
     unlockedAt: null,
     progress: 0,
     max: 1,
     rarity: 'COMMON',
     emoji: '⚡',
+    xpReward: 100,
   },
   {
     id: 'streak_7',
     title: '7 DAYS 🔥',
-    description: 'Reach a 7-day streak. The neural link is stabilized.',
+    description: 'Reach a 7-day streak. Neural link fully stabilized.',
     unlockedAt: null,
     progress: 0,
     max: 7,
     rarity: 'RARE',
     emoji: '🔥',
+    xpReward: 250,
   },
   {
     id: 'night_owl',
     title: 'NIGHT OWL 🌙',
-    description: 'Log a session during late night hours (01:00 - 05:00).',
+    description: 'Log 10 sessions during late night hours (after midnight).',
     unlockedAt: null,
     progress: 0,
-    max: 1,
+    max: 10,
     rarity: 'RARE',
     emoji: '🦉',
+    xpReward: 200,
+  },
+  {
+    id: 'early_bird',
+    title: 'EARLY BIRD ☀️',
+    description: 'Log 5 sessions before 08:00 AM in the morning.',
+    unlockedAt: null,
+    progress: 0,
+    max: 5,
+    rarity: 'RARE',
+    emoji: '🌅',
+    xpReward: 200,
   },
   {
     id: 'century',
@@ -41,6 +55,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     max: 100,
     rarity: 'EPIC',
     emoji: '🏆',
+    xpReward: 500,
   },
   {
     id: 'marathon',
@@ -51,16 +66,40 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     max: 1,
     rarity: 'EPIC',
     emoji: '⏱️',
+    xpReward: 300,
   },
   {
     id: 'consistent_30',
-    title: 'CONSISTENT 📅',
+    title: 'CONSISTENCY 📅',
     description: 'Attain a legendary 30-day streak of pure dedication.',
     unlockedAt: null,
     progress: 0,
     max: 30,
     rarity: 'LEGENDARY',
     emoji: '👑',
+    xpReward: 1000,
+  },
+  {
+    id: 'the_machine',
+    title: 'THE MACHINE ⚙️',
+    description: 'Complete 250 total sessions across all time.',
+    unlockedAt: null,
+    progress: 0,
+    max: 250,
+    rarity: 'LEGENDARY',
+    emoji: '🤖',
+    xpReward: 1500,
+  },
+  {
+    id: 'absolute_unit',
+    title: 'ABSOLUTE UNIT 💀',
+    description: 'Reach 100 total hours of logged time.',
+    unlockedAt: null,
+    progress: 0,
+    max: 100,
+    rarity: 'LEGENDARY',
+    emoji: '💀',
+    xpReward: 2000,
   },
   {
     id: 'zen_master',
@@ -71,6 +110,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     max: 5,
     rarity: 'RARE',
     emoji: '🫠',
+    xpReward: 250,
   },
   {
     id: 'hyperdrive',
@@ -81,6 +121,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     max: 4,
     rarity: 'EPIC',
     emoji: '🚀',
+    xpReward: 400,
   },
 ];
 
@@ -94,9 +135,11 @@ export function evaluateAchievements(
 
   const totalCount = sessions.length;
   const bestStreak = Math.max(streak.currentStreak, streak.longestStreak);
+  const totalHours = Math.floor(sessions.reduce((acc, s) => acc + (s.duration || 0), 0) / 60);
 
   const dayCounts: Record<string, number> = {};
-  let hasNightOwl = false;
+  let nightOwlCount = 0;
+  let earlyBirdCount = 0;
   let hasMarathon = false;
   let chaoticMoodCount = 0;
 
@@ -106,7 +149,8 @@ export function evaluateAchievements(
     dayCounts[dayKey] = (dayCounts[dayKey] || 0) + 1;
 
     const hour = d.getHours();
-    if (hour >= 1 && hour < 5) hasNightOwl = true;
+    if (hour >= 0 && hour <= 4) nightOwlCount++;
+    if (hour >= 5 && hour < 8) earlyBirdCount++;
     if (s.duration >= 60) hasMarathon = true;
     if (s.mood === '🫠' || s.mood === '😈') chaoticMoodCount++;
   }
@@ -125,7 +169,10 @@ export function evaluateAchievements(
         progress = Math.min(7, bestStreak);
         break;
       case 'night_owl':
-        progress = hasNightOwl ? 1 : 0;
+        progress = Math.min(10, nightOwlCount);
+        break;
+      case 'early_bird':
+        progress = Math.min(5, earlyBirdCount);
         break;
       case 'century':
         progress = Math.min(100, totalCount);
@@ -135,6 +182,12 @@ export function evaluateAchievements(
         break;
       case 'consistent_30':
         progress = Math.min(30, bestStreak);
+        break;
+      case 'the_machine':
+        progress = Math.min(250, totalCount);
+        break;
+      case 'absolute_unit':
+        progress = Math.min(100, totalHours);
         break;
       case 'zen_master':
         progress = Math.min(5, chaoticMoodCount);

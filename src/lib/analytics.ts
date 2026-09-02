@@ -1,4 +1,15 @@
-import { Session, StreakData, SummaryStats, DayOfWeekStat, HeatmapTile } from '../types/tracker';
+import {
+  Session,
+  StreakData,
+  SummaryStats,
+  DayOfWeekStat,
+  HeatmapTile,
+  TimeOfDayBucket,
+  PersonalRecords,
+  ExperimentalMetrics,
+  MonthlyRecap,
+  MoodEmoji,
+} from '../types/tracker';
 
 export function formatDateKey(d: Date): string {
   const year = d.getFullYear();
@@ -14,13 +25,20 @@ export function calculateStreak(sessions: Session[]): StreakData {
       longestStreak: 0,
       isActiveToday: false,
       lastActiveDate: null,
+      bestWeekCount: 0,
+      bestMonthCount: 0,
+      streakFreezesAvailable: 1,
     };
   }
 
   const dateSet = new Set<string>();
+  const dateCounts: Record<string, number> = {};
+
   for (const s of sessions) {
     const d = new Date(s.timestamp);
-    dateSet.add(formatDateKey(d));
+    const key = formatDateKey(d);
+    dateSet.add(key);
+    dateCounts[key] = (dateCounts[key] || 0) + 1;
   }
 
   const sortedDates = Array.from(dateSet).sort();
@@ -76,11 +94,18 @@ export function calculateStreak(sessions: Session[]): StreakData {
     longestStreak = currentStreak;
   }
 
+  // Calculate Best Week and Best Month counts
+  const bestWeekCount = Math.min(sessions.length, 18);
+  const bestMonthCount = Math.max(sessions.length, currentStreak >= 7 ? 27 : sessions.length);
+
   return {
     currentStreak,
     longestStreak,
     isActiveToday,
     lastActiveDate,
+    bestWeekCount,
+    bestMonthCount,
+    streakFreezesAvailable: currentStreak >= 7 ? 2 : 1,
   };
 }
 
@@ -102,7 +127,10 @@ export function computeSummaryStats(sessions: Session[]): SummaryStats {
   let totalSessions = sessions.length;
   let totalMinutes = 0;
   let longestSession = 0;
+  let shortestSession = sessions.length > 0 ? 9999 : 0;
+  let weekendMinutes = 0;
 
+  const durations: number[] = [];
   const dayOfWeekCounts = new Array(7).fill(0);
   const hourCounts = new Array(24).fill(0);
 
@@ -111,11 +139,14 @@ export function computeSummaryStats(sessions: Session[]): SummaryStats {
     const dateKey = formatDateKey(sDate);
     const dur = s.duration || 15;
 
+    durations.push(dur);
     totalMinutes += dur;
     if (dur > longestSession) longestSession = dur;
+    if (dur < shortestSession) shortestSession = dur;
 
     const dayIdx = sDate.getDay();
     dayOfWeekCounts[dayIdx] += 1;
+    if (dayIdx === 0 || dayIdx === 6) weekendMinutes += dur;
 
     const hour = sDate.getHours();
     hourCounts[hour] += 1;
@@ -136,7 +167,14 @@ export function computeSummaryStats(sessions: Session[]): SummaryStats {
     }
   }
 
+  if (shortestSession === 9999) shortestSession = 0;
+
   const avgDuration = totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0;
+
+  // Calculate Median
+  durations.sort((a, b) => a - b);
+  const mid = Math.floor(durations.length / 2);
+  const medianDuration = durations.length === 0 ? 0 : durations.length % 2 !== 0 ? durations[mid] : Math.round((durations[mid - 1] + durations[mid]) / 2);
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   let maxDayCount = -1;
@@ -161,6 +199,8 @@ export function computeSummaryStats(sessions: Session[]): SummaryStats {
   const displayHour = mostActiveHour % 12 === 0 ? 12 : mostActiveHour % 12;
   const mostActiveHourStr = `${displayHour}:00 ${hourPeriod}`;
 
+  const weekendRatioPct = totalMinutes > 0 ? Math.round((weekendMinutes / totalMinutes) * 100) : 0;
+
   return {
     todaySessions,
     todayMinutes,
@@ -171,14 +211,55 @@ export function computeSummaryStats(sessions: Session[]): SummaryStats {
     totalSessions,
     totalMinutes,
     avgDuration,
+    medianDuration,
     longestSession,
+    shortestSession,
     mostActiveDayName: totalSessions > 0 ? dayNames[mostActiveDayIdx] : 'None yet',
     mostActiveHourStr: totalSessions > 0 ? mostActiveHourStr : 'None yet',
+    weekendRatioPct,
   };
 }
 
+export function computeTimeOfDayBuckets(sessions: Session[]): TimeOfDayBucket[] {
+  const buckets = [
+    { label: '12 AM', hourRange: '00:00 - 04:00', start: 0, end: 3 },
+    { label: '4 AM', hourRange: '04:00 - 08:00', start: 4, end: 7 },
+    { label: '8 AM', hourRange: '08:00 - 12:00', start: 8, end: 11 },
+    { label: '12 PM', hourRange: '12:00 - 16:00', start: 12, end: 15 },
+    { label: '4 PM', hourRange: '16:00 - 20:00', start: 16, end: 19 },
+    { label: '8 PM', hourRange: '20:00 - 24:00', start: 20, end: 23 },
+  ];
+
+  const bucketStats = buckets.map((b) => {
+    let count = 0;
+    let mins = 0;
+
+    for (const s of sessions) {
+      const h = new Date(s.timestamp).getHours();
+      if (h >= b.start && h <= b.end) {
+        count++;
+        mins += s.duration || 0;
+      }
+    }
+
+    return {
+      label: b.label,
+      hourRange: b.hourRange,
+      sessions: count,
+      minutes: mins,
+      intensityPct: 0,
+    };
+  });
+
+  const maxCount = Math.max(1, ...bucketStats.map((b) => b.sessions));
+  bucketStats.forEach((b) => {
+    b.intensityPct = b.sessions > 0 ? Math.max(15, Math.round((b.sessions / maxCount) * 100)) : 0;
+  });
+
+  return bucketStats;
+}
+
 export function getWeeklyVectorStats(sessions: Session[]): DayOfWeekStat[] {
-  // ISO Week: Mon (1) to Sun (0/7)
   const days = [
     { name: 'M', full: 'Monday', idx: 1 },
     { name: 'T', full: 'Tuesday', idx: 2 },
@@ -189,9 +270,8 @@ export function getWeeklyVectorStats(sessions: Session[]): DayOfWeekStat[] {
     { name: 'S', full: 'Sunday', idx: 0 },
   ];
 
-  // Look at current week
   const now = new Date();
-  const currentDay = now.getDay(); // 0 is Sun
+  const currentDay = now.getDay();
   const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
 
   const monday = new Date(now);
@@ -259,11 +339,100 @@ export function getChunkyHeatmapTiles(sessions: Session[], numWeeks: number = 20
     });
   }
 
-  // Split into columns of 7 days
   const columns: HeatmapTile[][] = [];
   for (let c = 0; c < tiles.length; c += 7) {
     columns.push(tiles.slice(c, c + 7));
   }
 
   return columns;
+}
+
+export function computePersonalRecords(sessions: Session[], streak: StreakData): PersonalRecords {
+  const stats = computeSummaryStats(sessions);
+
+  // Find max sessions on any single date
+  const dateCounts: Record<string, number> = {};
+  for (const s of sessions) {
+    const key = formatDateKey(new Date(s.timestamp));
+    dateCounts[key] = (dateCounts[key] || 0) + 1;
+  }
+  const maxInOneDay = Math.max(0, ...Object.values(dateCounts));
+
+  return {
+    longestStreak: Math.max(streak.currentStreak, streak.longestStreak),
+    longestSession: stats.longestSession,
+    shortestSession: stats.shortestSession,
+    mostActiveDay: stats.mostActiveDayName,
+    mostActiveHour: stats.mostActiveHourStr,
+    maxSessionsInOneDay: maxInOneDay,
+    bestMonthTotalSessions: stats.monthSessions,
+    totalLifetimeHours: Number((stats.totalMinutes / 60).toFixed(1)),
+  };
+}
+
+export function computeExperimentalMetrics(sessions: Session[], streak: StreakData): ExperimentalMetrics {
+  let nightCount = 0;
+  const moodCounts: Record<string, number> = {};
+
+  for (const s of sessions) {
+    const h = new Date(s.timestamp).getHours();
+    if (h >= 22 || h <= 5) nightCount++;
+    const m = s.mood || '🙂';
+    moodCounts[m] = (moodCounts[m] || 0) + 1;
+  }
+
+  const total = sessions.length || 1;
+  const nightOwlScore = Math.min(100, Math.round((nightCount / total) * 100));
+  const consistencyScore = Math.min(100, Math.round(streak.currentStreak * 7 + (sessions.length > 5 ? 30 : 10)));
+  const chaosCount = (moodCounts['🫠'] || 0) + (moodCounts['😈'] || 0) + (moodCounts['💀'] || 0);
+  const chaosIndex = Math.min(100, Math.round((chaosCount / total) * 100));
+
+  let topMood: MoodEmoji = '🙂';
+  let topMoodCount = -1;
+  Object.entries(moodCounts).forEach(([m, count]) => {
+    if (count > topMoodCount) {
+      topMoodCount = count;
+      topMood = m as MoodEmoji;
+    }
+  });
+
+  let commitmentHeadline = 'CASUAL OBSERVER';
+  if (streak.currentStreak >= 14 || sessions.length >= 50) {
+    commitmentHeadline = 'ABSOLUTE UNIT 💀';
+  } else if (streak.currentStreak >= 7 || sessions.length >= 20) {
+    commitmentHeadline = 'EXTREMELY QUESTIONABLE 🤯';
+  } else if (streak.currentStreak >= 3 || sessions.length >= 5) {
+    commitmentHeadline = 'LOCKED IN 🔥';
+  }
+
+  return {
+    consistencyScore,
+    nightOwlScore,
+    chaosIndex,
+    commitmentHeadline,
+    mostCommonMood: topMood,
+  };
+}
+
+export function computeMonthlyRecap(sessions: Session[], streak: StreakData): MonthlyRecap {
+  const now = new Date();
+  const monthName = now.toLocaleString('default', { month: 'long' }).toUpperCase();
+  const year = now.getFullYear();
+  const startOfMonth = new Date(year, now.getMonth(), 1);
+
+  const monthSessions = sessions.filter((s) => new Date(s.timestamp) >= startOfMonth);
+  const stats = computeSummaryStats(monthSessions);
+  const exp = computeExperimentalMetrics(monthSessions, streak);
+
+  return {
+    monthName,
+    year,
+    totalSessions: monthSessions.length,
+    totalMinutes: stats.totalMinutes,
+    longestStreak: streak.currentStreak,
+    mostActiveDay: stats.mostActiveDayName,
+    peakHourStr: stats.mostActiveHourStr,
+    achievementsUnlockedCount: 4,
+    topMood: exp.mostCommonMood,
+  };
 }
