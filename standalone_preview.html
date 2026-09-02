@@ -131,7 +131,7 @@
     }
 
     // SVG Vector Mascot Component
-    function BlobMascot({ state = 'FIRE', quote = "You're absolutely committed to the bit." }) {
+    function BlobMascot({ state = 'FIRE', quote = "Ready to start fresh. Tap + LOG to begin!" }) {
       return (
         <div className="flex flex-col items-center justify-center select-none">
           {quote && (
@@ -168,9 +168,9 @@
       const [sessions, setSessions] = useState(() => {
         try {
           const s = localStorage.getItem(STORAGE_KEY);
-          return s ? JSON.parse(s) : generateSeed();
+          return s ? JSON.parse(s) : [];
         } catch {
-          return generateSeed();
+          return [];
         }
       });
 
@@ -279,12 +279,14 @@
               <div className="space-y-6">
                 {/* Hero Mascot */}
                 <div className="rounded-4xl bg-gradient-to-b from-goon-surfaceLight to-goon-surface border-2 border-goon-purple/40 p-6 md:p-8 text-center shadow-chunky-purple">
-                  <BlobMascot />
+                  <BlobMascot quote={sessions.length === 0 ? "Ready to start fresh. Tap + LOG to begin!" : "You're absolutely committed to the bit."} />
                   <div className="mt-4 mb-2">
                     <span className="text-5xl md:text-7xl font-black text-goon-yellow drop-shadow-[0_4px_0_#B45309]">{streak}</span>
                     <span className="text-2xl md:text-4xl font-extrabold text-goon-text ml-3">DAYS STREAK 🔥</span>
                   </div>
-                  <p className="text-xs font-bold text-goon-muted mb-6">“You're absolutely committed to the bit.”</p>
+                  <p className="text-xs font-bold text-goon-muted mb-6">
+                    {sessions.length === 0 ? "No active sessions. Log a session to initialize day 1." : "“You're absolutely committed to the bit.”"}
+                  </p>
                   <button
                     onClick={() => { sound.pop(880); setIsLogOpen(true); }}
                     className="w-full max-w-sm py-4 rounded-2xl bg-gradient-to-r from-goon-yellow via-goon-coral to-goon-pink text-slate-950 font-black text-base shadow-chunky-yellow hover:scale-[1.02] transition-all"
@@ -298,12 +300,12 @@
                   <div className="p-5 rounded-3xl bg-goon-surface border-2 border-goon-yellow/60 shadow-chunky-yellow">
                     <div className="text-xs font-black text-goon-yellow mb-1">STREAK</div>
                     <div className="text-3xl font-black">{streak} DAYS</div>
-                    <div className="text-[11px] font-bold text-goon-muted">Personal best: 14</div>
+                    <div className="text-[11px] font-bold text-goon-muted">Personal record</div>
                   </div>
                   <div className="p-5 rounded-3xl bg-goon-surface border-2 border-goon-pink/60 shadow-chunky-pink">
                     <div className="text-xs font-black text-goon-pink mb-1">THIS MONTH</div>
                     <div className="text-3xl font-black">{sessions.length} SESSIONS</div>
-                    <div className="text-[11px] font-bold text-goon-muted">Flow sustained</div>
+                    <div className="text-[11px] font-bold text-goon-muted">Flow archive</div>
                   </div>
                   <div className="p-5 rounded-3xl bg-goon-surface border-2 border-goon-purple/60 shadow-chunky-purple">
                     <div className="text-xs font-black text-goon-purpleLight mb-1">TOTAL TIME</div>
@@ -323,7 +325,7 @@
                       <div key={idx} className="flex-1 flex flex-col items-center justify-end h-full">
                         <div
                           className="w-full max-w-[36px] rounded-t-2xl bg-gradient-to-t from-goon-purple via-goon-pink to-goon-yellow border-2 border-goon-surfaceBorder shadow-chunky-purple"
-                          style={{ height: `${[40, 65, 30, 85, 95, 50, 70][idx]}%` }}
+                          style={{ height: `${sessions.length > 0 ? [40, 65, 30, 85, 95, 50, 70][idx] : 6}%` }}
                         />
                       </div>
                     ))}
@@ -342,12 +344,12 @@
                 <h2 className="text-2xl font-black">ARCADE TROPHIES</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
-                    { title: 'FIRST BLOOD', desc: 'Log your first session', emoji: '⚡', unlocked: true },
-                    { title: '7 DAYS 🔥', desc: 'Reach a 7-day streak', emoji: '🔥', unlocked: true },
-                    { title: 'NIGHT OWL 🌙', desc: 'Log late night hours', emoji: '🦉', unlocked: true },
-                    { title: 'CENTURY 💯', desc: 'Reach 100 total sessions', emoji: '🏆', unlocked: false },
+                    { title: 'FIRST BLOOD', desc: 'Log your first session', emoji: '⚡', unlocked: sessions.length >= 1 },
+                    { title: '7 DAYS 🔥', desc: 'Reach a 7-day streak', emoji: '🔥', unlocked: streak >= 7 },
+                    { title: 'NIGHT OWL 🌙', desc: 'Log late night hours', emoji: '🦉', unlocked: false },
+                    { title: 'CENTURY 💯', desc: 'Reach 100 total sessions', emoji: '🏆', unlocked: sessions.length >= 100 },
                   ].map((ach, i) => (
-                    <div key={i} className="p-5 rounded-3xl bg-goon-surface border-2 border-goon-surfaceBorder shadow-chunky-purple flex items-center gap-4">
+                    <div key={i} className={`p-5 rounded-3xl bg-goon-surface border-2 border-goon-surfaceBorder shadow-chunky-purple flex items-center gap-4 ${ach.unlocked ? '' : 'opacity-60'}`}>
                       <span className="text-4xl">{ach.emoji}</span>
                       <div>
                         <div className="font-black text-sm">{ach.title}</div>
@@ -362,19 +364,27 @@
             {tab === 'history' && (
               <div className="space-y-4">
                 <h2 className="text-2xl font-black">TIMELINE HISTORY</h2>
-                <div className="space-y-3">
-                  {sessions.slice(0, 8).map(s => (
-                    <div key={s.id} className="p-4 rounded-3xl bg-goon-surface border-2 border-goon-surfaceBorder flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl">{s.mood}</span>
-                        <div>
-                          <div className="font-black text-sm">{s.duration} min • {new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                          <div className="text-xs font-bold text-goon-muted">{s.note || 'Logged session'}</div>
+                {sessions.length === 0 ? (
+                  <div className="p-8 rounded-3xl bg-goon-surface border-2 border-goon-surfaceBorder text-center">
+                    <div className="text-3xl mb-2">🛸</div>
+                    <div className="font-black text-sm">NO SESSIONS LOGGED YET</div>
+                    <div className="text-xs text-goon-muted mt-1">Tap + LOG on Home to add your first session.</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {sessions.slice(0, 8).map(s => (
+                      <div key={s.id} className="p-4 rounded-3xl bg-goon-surface border-2 border-goon-surfaceBorder flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">{s.mood}</span>
+                          <div>
+                            <div className="font-black text-sm">{s.duration} min • {new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                            <div className="text-xs font-bold text-goon-muted">{s.note || 'Logged session'}</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -387,15 +397,23 @@
                 </div>
                 <button
                   onClick={() => {
-                    const blob = new Blob([JSON.stringify(sessions, null, 2)], { type: 'application/json' });
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = 'goontrack_backup.json';
-                    a.click();
+                    const seed = generateSeed();
+                    setSessions(seed);
+                    sound.fanfare();
                   }}
-                  className="w-full py-3.5 bg-goon-surfaceLight border-2 border-goon-surfaceBorder rounded-2xl font-black text-xs"
+                  className="w-full py-3.5 bg-goon-surfaceLight border-2 border-goon-yellow text-goon-yellow rounded-2xl font-black text-xs"
                 >
-                  EXPORT JSON BACKUP
+                  ⚡ LOAD DEMO TEST DATA (12-DAY STREAK)
+                </button>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem(STORAGE_KEY);
+                    setSessions([]);
+                    sound.pop(200);
+                  }}
+                  className="w-full py-3.5 bg-goon-surfaceLight border-2 border-goon-coral text-goon-coral rounded-2xl font-black text-xs"
+                >
+                  🗑️ RESET ALL LOCAL DATA
                 </button>
               </div>
             )}

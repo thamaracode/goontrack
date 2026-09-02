@@ -107,16 +107,11 @@ export default function AppShell() {
     }
   }, [triggerConfetti]);
 
-  // Initial Data Load
+  // Initial Data Load (clean empty state by default)
   useEffect(() => {
     setIsClient(true);
-    let initialSessions = loadSessions();
+    const initialSessions = loadSessions();
     const loadedSettings = loadSettings();
-
-    // Auto-populate 12-day streak demo dataset on empty first run
-    if (initialSessions.length === 0) {
-      initialSessions = generateSeedMockData();
-    }
 
     setSessions(initialSessions);
     setSettings(loadedSettings);

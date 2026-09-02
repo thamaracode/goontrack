@@ -1,0 +1,8 @@
+{
+  "appId": "com.thamaracode.goontrack",
+  "appName": "GOONTRACK",
+  "webDir": "out",
+  "server": {
+    "androidScheme": "https"
+  }
+}
