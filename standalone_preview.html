@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
-  <title>GOONTRACK V2 — Personal Habit Arcade</title>
+  <title>GOONTRACK V2.3 — Personal Habit Arcade</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- React & ReactDOM CDN -->
@@ -59,6 +59,37 @@
       overflow-x: hidden;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+    }
+
+    @keyframes swimmerBob {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+
+    @keyframes swimmerTail {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(12deg); }
+      75% { transform: rotate(-12deg); }
+    }
+
+    @keyframes swimmerTurboTail {
+      0%, 100% { transform: rotate(0deg) scaleX(1); }
+      25% { transform: rotate(22deg) scaleX(0.95); }
+      75% { transform: rotate(-22deg) scaleX(0.95); }
+    }
+
+    .animate-swimmer-bob {
+      animation: swimmerBob 2.2s infinite ease-in-out;
+    }
+
+    .animate-swimmer-tail {
+      transform-origin: 65px 120px;
+      animation: swimmerTail 1.2s infinite ease-in-out;
+    }
+
+    .animate-swimmer-turbo-tail {
+      transform-origin: 65px 120px;
+      animation: swimmerTurboTail 0.35s infinite ease-in-out;
     }
   </style>
 </head>
@@ -149,8 +180,20 @@
       ];
     }
 
-    function BlobMascot({ state = 'NORMAL', quote = '', size = 'md' }) {
-      const dim = size === 'sm' ? 'w-16 h-16' : 'w-36 h-36 md:w-44 md:h-44';
+    // 🧬 THE SWIMMER VECTOR MASCOT
+    function TheSwimmerMascot({ state = 'NORMAL', quote = '', size = 'md' }) {
+      const [isDarting, setIsDarting] = useState(false);
+      const dim = size === 'sm' ? 'w-16 h-16' : size === 'lg' ? 'w-48 h-48' : 'w-36 h-36 md:w-44 md:h-44';
+      const isTurbo = state === 'STREAKING' || state === 'RECORD';
+      const isDead = state === 'DEAD' || state === 'LOST';
+
+      const handleTap = () => {
+        sound.pop(880 + Math.random() * 120);
+        haptics.tap();
+        setIsDarting(true);
+        setTimeout(() => setIsDarting(false), 500);
+      };
+
       return (
         <div className="flex flex-col items-center justify-center select-none">
           {quote && (
@@ -158,43 +201,120 @@
               “{quote}”
             </div>
           )}
-          <div className={`${dim} cursor-pointer hover:scale-105 transition-transform`} onClick={() => { sound.pop(800); haptics.tap(); }}>
-            <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_10px_20px_rgba(139,92,246,0.35)]">
-              <ellipse cx="100" cy="180" rx="60" ry="12" fill="#0A0614" opacity="0.6" />
-              <path d="M50,150 C20,130 20,80 50,50 C80,20 120,20 150,50 C180,80 180,130 150,150 C120,175 80,175 50,150 Z" fill="url(#mGrad)" stroke="#100B1F" strokeWidth="8" />
-              <path d="M65,135 C50,115 50,85 70,65 C90,45 110,45 130,65 C150,85 150,115 135,135 C115,150 85,150 65,135 Z" fill="#A78BFA" opacity="0.35" />
-              <path d="M28,110 C15,115 15,125 25,130 C35,135 40,125 35,115 Z" fill="#8B5CF6" stroke="#100B1F" strokeWidth="6" />
-              <path d="M172,110 C185,115 185,125 175,130 C165,135 160,125 165,115 Z" fill="#8B5CF6" stroke="#100B1F" strokeWidth="6" />
+          <div
+            className={`${dim} cursor-pointer transition-transform ${isDarting ? 'translate-x-4 -translate-y-2' : 'hover:scale-105'}`}
+            onClick={handleTap}
+            title="The Swimmer — Tap to swim!"
+          >
+            <svg
+              viewBox="0 0 200 200"
+              className={`w-full h-full drop-shadow-[0_12px_24px_rgba(245,158,11,0.35)] ${isDead ? 'rotate-90 opacity-80' : 'animate-swimmer-bob'}`}
+            >
+              <ellipse cx="100" cy="180" rx="55" ry="10" fill="#040D12" opacity="0.6" />
+
+              <defs>
+                <linearGradient id="swimmerBodyGrad" x1="20" y1="20" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#FDE047" />
+                  <stop offset="35%" stopColor="#F59E0B" />
+                  <stop offset="75%" stopColor="#EA580C" />
+                  <stop offset="100%" stopColor="#9A3412" />
+                </linearGradient>
+
+                <linearGradient id="swimmerShineGrad" x1="80" y1="40" x2="160" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.75" />
+                  <stop offset="100%" stopColor="#FDE047" stopOpacity="0.05" />
+                </linearGradient>
+
+                <linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#FEF08A" />
+                  <stop offset="50%" stopColor="#F59E0B" />
+                  <stop offset="100%" stopColor="#DC2626" />
+                </linearGradient>
+              </defs>
+
+              {/* 🧬 Wiggling Swimmer Tail */}
+              <g className={isTurbo ? 'animate-swimmer-turbo-tail' : 'animate-swimmer-tail'}>
+                <path
+                  d="M 95,95 C 65,115 45,95 28,125 C 18,142 22,156 14,168 C 10,174 6,178 2,182 C 10,172 20,162 26,148 C 42,112 68,135 90,108 Z"
+                  fill="url(#swimmerBodyGrad)"
+                  stroke="#07151D"
+                  strokeWidth="5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 85,98 C 60,115 45,102 32,126 C 24,138 25,148 18,158 C 22,150 28,140 33,132 C 45,110 65,124 82,106 Z"
+                  fill="#FDE047"
+                  opacity="0.45"
+                />
+              </g>
+
+              {/* 🧬 Rounded Head Cell Body */}
+              <path
+                d="M 90,55 C 105,35 145,35 165,55 C 185,75 185,115 165,135 C 145,155 105,155 90,135 C 75,115 75,75 90,55 Z"
+                fill="url(#swimmerBodyGrad)"
+                stroke="#07151D"
+                strokeWidth="7"
+                strokeLinejoin="round"
+              />
+
+              {/* Head Specular Highlight Glint */}
+              <path
+                d="M 105,52 C 120,40 148,40 160,52 C 168,60 170,72 165,82 C 158,68 142,55 125,52 C 115,50 108,50 105,52 Z"
+                fill="url(#swimmerShineGrad)"
+              />
+
+              {/* Tiny cute fin / arm */}
+              <path
+                d="M 135,138 C 130,152 142,155 148,145 Z"
+                fill="#EA580C"
+                stroke="#07151D"
+                strokeWidth="4"
+              />
+
+              {/* Expressions & Accessories */}
               {state === 'STREAKING' ? (
                 <g>
-                  <path d="M80,30 L90,15 L100,28 L110,12 L120,30 Z" fill="#FACC15" stroke="#100B1F" strokeWidth="4" />
-                  <circle cx="75" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
-                  <circle cx="125" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
-                  <circle cx="78" cy="83" r="5" fill="#100B1F" /><circle cx="128" cy="83" r="5" fill="#100B1F" />
-                  <path d="M80,112 Q100,135 120,112 Z" fill="#F472B6" stroke="#100B1F" strokeWidth="6" />
+                  <path d="M 115,40 Q 120,15 130,28 Q 140,8 148,25 Q 158,12 160,38 Z" fill="url(#flameGrad)" stroke="#07151D" strokeWidth="4" />
+                  <polygon points="120,80 123,88 131,88 125,93 127,101 120,96 113,101 115,93 109,88 117,88" fill="#07151D" />
+                  <polygon points="155,80 158,88 166,88 160,93 162,101 155,96 148,101 150,93 144,88 152,88" fill="#07151D" />
+                  <path d="M 125,112 Q 138,128 150,112 Z" fill="#07151D" stroke="#07151D" strokeWidth="3" />
+                  <circle cx="108" cy="105" r="7" fill="#F43F5E" opacity="0.6" />
+                  <circle cx="168" cy="105" r="7" fill="#F43F5E" opacity="0.6" />
                 </g>
               ) : state === 'COOL' ? (
                 <g>
-                  <path d="M52,75 L95,75 C95,95 60,95 55,85 Z" fill="#100B1F" stroke="#FACC15" strokeWidth="4" />
-                  <path d="M148,75 L105,75 C105,95 140,95 145,85 Z" fill="#100B1F" stroke="#FACC15" strokeWidth="4" />
-                  <line x1="95" y1="78" x2="105" y2="78" stroke="#FACC15" strokeWidth="4" />
-                  <path d="M85,115 Q105,122 120,110" stroke="#100B1F" strokeWidth="6" fill="none" />
+                  <path d="M 105,78 L 132,78 C 132,95 108,95 106,86 Z" fill="#07151D" stroke="#FDE047" strokeWidth="3" />
+                  <path d="M 142,78 L 168,78 C 168,95 144,95 142,86 Z" fill="#07151D" stroke="#FDE047" strokeWidth="3" />
+                  <line x1="132" y1="80" x2="142" y2="80" stroke="#FDE047" strokeWidth="3" />
+                  <path d="M 128,112 Q 142,120 152,108" stroke="#07151D" strokeWidth="5" fill="none" strokeLinecap="round" />
+                </g>
+              ) : state === 'RECORD' ? (
+                <g>
+                  <path d="M 118,42 L 126,22 L 138,34 L 150,20 L 158,40 Z" fill="#FDE047" stroke="#07151D" strokeWidth="4" />
+                  <circle cx="122" cy="85" r="11" fill="#07151D" />
+                  <circle cx="125" cy="82" r="4.5" fill="#FFFFFF" />
+                  <circle cx="154" cy="85" r="11" fill="#07151D" />
+                  <circle cx="157" cy="82" r="4.5" fill="#FFFFFF" />
+                  <path d="M 128,110 Q 138,124 148,110 Z" fill="#07151D" />
+                </g>
+              ) : state === 'NIGHT' ? (
+                <g>
+                  <path d="M 120,45 C 130,20 170,15 182,30 C 190,40 188,60 175,65 Z" fill="#0284C7" stroke="#07151D" strokeWidth="4" />
+                  <circle cx="185" cy="30" r="6" fill="#FDE047" stroke="#07151D" strokeWidth="3" />
+                  <path d="M 115,88 Q 123,94 130,88" stroke="#07151D" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+                  <path d="M 146,88 Q 154,94 162,88" stroke="#07151D" strokeWidth="4.5" fill="none" strokeLinecap="round" />
                 </g>
               ) : (
                 <g>
-                  <circle cx="75" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
-                  <circle cx="125" cy="85" r="14" fill="#FACC15" stroke="#100B1F" strokeWidth="5" />
-                  <circle cx="78" cy="83" r="5" fill="#100B1F" /><circle cx="128" cy="83" r="5" fill="#100B1F" />
-                  <path d="M80,112 Q100,135 120,112 Z" fill="#F472B6" stroke="#100B1F" strokeWidth="6" />
+                  <circle cx="122" cy="85" r="11" fill="#07151D" />
+                  <circle cx="125" cy="82" r="4.5" fill="#FFFFFF" />
+                  <circle cx="154" cy="85" r="11" fill="#07151D" />
+                  <circle cx="157" cy="82" r="4.5" fill="#FFFFFF" />
+                  <circle cx="108" cy="100" r="7" fill="#EA580C" opacity="0.4" />
+                  <circle cx="168" cy="100" r="7" fill="#EA580C" opacity="0.4" />
+                  <path d="M 128,106 Q 138,120 148,106 Z" fill="#07151D" />
                 </g>
               )}
-              <circle cx="55" cy="102" r="10" fill="#F472B6" opacity="0.6" />
-              <circle cx="145" cy="102" r="10" fill="#F472B6" opacity="0.6" />
-              <defs>
-                <linearGradient id="mGrad" x1="50" y1="30" x2="150" y2="170" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#9333EA" /><stop offset="0.5" stopColor="#8B5CF6" /><stop offset="1" stopColor="#C084FC" />
-                </linearGradient>
-              </defs>
             </svg>
           </div>
         </div>
@@ -260,7 +380,8 @@
       });
       const [tab, setTab] = useState('home');
       const [isLogOpen, setIsLogOpen] = useState(false);
-      const [formDuration, setFormDuration] = useState(24);
+      const [logUnit, setLogUnit] = useState('min');
+      const [logValue, setLogValue] = useState(30);
       const [formMood, setFormMood] = useState('🙂');
       const [formNote, setFormNote] = useState('');
       const [qOffset, setQOffset] = useState(0);
@@ -300,14 +421,28 @@
       const transmission = TRANSMISSIONS[qOffset % TRANSMISSIONS.length];
       const cosmicUnits = computeCosmic(totalMins);
 
-      const addSession = (dur, m, n, customD) => {
+      // Convert unit to minutes
+      const getDurationInMinutes = (u, val) => {
+        switch(u) {
+          case 'ms': return Math.max(1, Math.round(val / 60000));
+          case 'sec': return Math.max(1, Math.round(val / 60));
+          case 'min': return val;
+          case 'hrs': return Math.round(val * 60);
+          case 'days': return Math.round(val * 1440);
+          case 'weeks': return Math.round(val * 10080);
+          case 'months': return Math.round(val * 43800);
+          default: return val;
+        }
+      };
+
+      const addSession = (calculatedMinutes, m, n, customD) => {
         let ts = new Date().toISOString();
         if (customD) {
           const [y, mm, dd] = customD.split('-').map(Number);
           const dt = new Date(); dt.setFullYear(y, mm - 1, dd);
           ts = dt.toISOString();
         }
-        const newS = { id: 's_' + Date.now(), timestamp: ts, duration: Number(dur), mood: m, note: n || undefined };
+        const newS = { id: 's_' + Date.now(), timestamp: ts, duration: Number(calculatedMinutes), mood: m, note: n || undefined };
         setSessions(prev => [newS, ...prev]);
         sound.save();
         haptics.success();
@@ -343,10 +478,10 @@
           {/* Desktop Sidebar */}
           <aside className="hidden md:flex flex-col w-64 bg-goon-surface border-r-2 border-goon-surfaceBorder p-6 shrink-0 h-screen sticky top-0 select-none">
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-3xl">🟣</span>
+              <span className="text-3xl">👑</span>
               <div>
                 <h1 className="text-xl font-black text-goon-text">GOONTRACK</h1>
-                <p className="text-[10px] font-bold text-goon-muted">PERSONAL HABIT ARCADE</p>
+                <p className="text-[10px] font-bold text-goon-muted">THE SWIMMER ARCADE</p>
               </div>
             </div>
 
@@ -363,7 +498,7 @@
 
             <button
               onClick={() => { sound.pop(880); haptics.tap(); setIsLogOpen(true); }}
-              className="w-full mb-6 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-goon-pink via-goon-coral to-goon-yellow text-slate-950 font-black text-sm shadow-chunky-pink hover:scale-[1.02] transition-all"
+              className="w-full mb-6 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-goon-yellow via-goon-coral to-goon-pink text-slate-950 font-black text-sm shadow-chunky-yellow hover:scale-[1.02] transition-all"
             >
               ＋ LOG SESSION
             </button>
@@ -405,7 +540,7 @@
             {/* Top Bar for Mobile */}
             <div className="flex items-center justify-between md:hidden">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">🟣</span>
+                <span className="text-2xl">👑</span>
                 <span className="font-black text-lg">GOONTRACK</span>
               </div>
               <div className="px-3 py-1 rounded-full bg-goon-surfaceLight border border-goon-surfaceBorder text-xs font-bold text-goon-yellow">
@@ -415,11 +550,11 @@
 
             {tab === 'home' && (
               <div className="space-y-6">
-                {/* Hero Mascot */}
+                {/* Hero Mascot: The Swimmer */}
                 <div className="rounded-4xl bg-gradient-to-b from-goon-surfaceLight to-goon-surface border-2 border-goon-purple/40 p-6 md:p-8 text-center shadow-chunky-purple">
-                  <BlobMascot state={streak >= 7 ? 'STREAKING' : 'NORMAL'} quote={streak >= 7 ? "You're absolutely committed to the bit." : "Ready to lock in. Tap + LOG to begin!"} />
+                  <TheSwimmerMascot state={streak >= 7 ? 'STREAKING' : 'NORMAL'} quote={streak >= 7 ? "You're absolutely committed to the bit." : "The Swimmer is locked in. Tap to swim!"} />
                   <div className="mt-4 mb-2">
-                    <span className="text-5xl md:text-7xl font-black text-goon-yellow drop-shadow-[0_4px_0_#B45309]">{streak}</span>
+                    <span className="text-5xl md:text-7xl font-black text-goon-yellow drop-shadow-[0_4px_0_#A16207]">{streak}</span>
                     <span className="text-2xl md:text-4xl font-extrabold text-goon-text ml-3">DAYS STREAK 🔥</span>
                   </div>
                   <div className="flex justify-center gap-2 mb-6">
@@ -450,7 +585,7 @@
                       <div className="text-[11px] font-bold text-goon-cyan mt-1">— {transmission.author}</div>
                     </div>
                     <div className="shrink-0">
-                      <BlobMascot state={transmission.pose} size="sm" />
+                      <TheSwimmerMascot state={transmission.pose} size="sm" />
                     </div>
                   </div>
                 </div>
@@ -659,18 +794,68 @@
             })}
           </nav>
 
-          {/* Fast Log Session Bottom Sheet */}
+          {/* ⚡ Fast Log Session Bottom Sheet with Milliseconds-to-Months Scale */}
           {isLogOpen && (
-            <div className="fixed inset-0 z-50 bg-black/75 flex items-end md:items-center justify-center p-0 md:p-4">
-              <div className="w-full max-w-lg bg-goon-surface rounded-t-4xl md:rounded-4xl border-2 border-goon-purple/50 p-6 space-y-4">
+            <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-4">
+              <div className="w-full max-w-lg bg-goon-surface rounded-t-4xl md:rounded-4xl border-2 border-goon-purple/50 p-6 space-y-4 max-h-[92vh] overflow-y-auto">
                 <div className="flex justify-between items-center pb-2 border-b-2 border-goon-surfaceBorder">
-                  <h3 className="font-black text-lg">LOG SESSION</h3>
+                  <h3 className="font-black text-lg flex items-center gap-2">
+                    <span>🧬</span>
+                    <span>LOG SESSION</span>
+                  </h3>
                   <button onClick={() => setIsLogOpen(false)} className="text-goon-muted">✕</button>
                 </div>
+
+                {/* Duration Unit Selector Tabs */}
                 <div>
-                  <label className="text-xs font-black text-goon-muted block mb-1">DURATION: {formDuration} min</label>
-                  <input type="range" min="5" max="90" step="5" value={formDuration} onChange={e => setFormDuration(e.target.value)} className="w-full accent-goon-yellow" />
+                  <label className="text-[10px] font-black text-goon-muted uppercase tracking-wider block mb-1">DURATION SCALE (MS TO MONTHS)</label>
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 bg-goon-bg p-1 rounded-xl border border-goon-surfaceBorder">
+                    {[
+                      { k: 'ms', l: 'MS', emoji: '⚡' },
+                      { k: 'sec', l: 'SEC', emoji: '⏱️' },
+                      { k: 'min', l: 'MIN', emoji: '⏳' },
+                      { k: 'hrs', l: 'HRS', emoji: '🕐' },
+                      { k: 'days', l: 'DAYS', emoji: '📅' },
+                      { k: 'weeks', l: 'WKS', emoji: '🌖' },
+                      { k: 'months', l: 'MOS', emoji: '🌕' },
+                    ].map(u => (
+                      <button
+                        key={u.k}
+                        onClick={() => {
+                          setLogUnit(u.k);
+                          setLogValue(u.k === 'ms' ? 1800000 : u.k === 'sec' ? 1800 : u.k === 'min' ? 30 : u.k === 'hrs' ? 2 : 1);
+                        }}
+                        className={`py-1 px-1 rounded-lg text-[9px] font-black flex flex-col items-center justify-center ${
+                          logUnit === u.k ? 'bg-goon-surfaceLight text-goon-yellow border border-goon-purple/50' : 'text-goon-muted'
+                        }`}
+                      >
+                        <span>{u.emoji}</span>
+                        <span>{u.l}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Duration Value + Slider */}
+                <div className="p-3 bg-goon-surfaceLight rounded-2xl border border-goon-surfaceBorder space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-goon-muted uppercase">{logUnit.toUpperCase()}</span>
+                    <span className="text-xl font-black text-goon-yellow">{logUnit === 'ms' ? logValue.toLocaleString() : logValue} <span className="text-xs text-goon-cyan">{logUnit}</span></span>
+                  </div>
+                  <input
+                    type="range"
+                    min={logUnit === 'ms' ? 1000 : logUnit === 'sec' ? 10 : logUnit === 'min' ? 1 : 1}
+                    max={logUnit === 'ms' ? 3600000 : logUnit === 'sec' ? 7200 : logUnit === 'min' ? 180 : logUnit === 'hrs' ? 24 : logUnit === 'days' ? 30 : 12}
+                    step={logUnit === 'ms' ? 1000 : logUnit === 'sec' ? 10 : 1}
+                    value={logValue}
+                    onChange={e => setLogValue(Number(e.target.value))}
+                    className="w-full accent-goon-yellow cursor-pointer"
+                  />
+                  <div className="text-[10px] font-bold text-goon-purpleLight pt-1">
+                    ≈ {getDurationInMinutes(logUnit, logValue)} minutes focus equivalent
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-xs font-black text-goon-muted block mb-1">MOOD</label>
                   <div className="flex gap-2">
@@ -685,14 +870,16 @@
                     ))}
                   </div>
                 </div>
+
                 <button
                   onClick={() => {
-                    addSession(formDuration, formMood, formNote);
+                    const finalMins = getDurationInMinutes(logUnit, logValue);
+                    addSession(finalMins, formMood, formNote);
                     setIsLogOpen(false);
                   }}
                   className="w-full py-4 bg-gradient-to-r from-goon-yellow via-goon-coral to-goon-pink text-slate-950 font-black rounded-2xl shadow-chunky-yellow"
                 >
-                  SAVE SESSION ⚡
+                  SAVE TELEMETRY ⚡
                 </button>
               </div>
             </div>
