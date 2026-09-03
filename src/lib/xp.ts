@@ -65,6 +65,7 @@ export function computeTotalXP(sessions: Session[], streak: StreakData): XPState
 
 export function getThemeUnlockRequirement(theme: ThemeKey): { requiredLevel: number; isUnlocked: boolean } {
   const requirements: Record<ThemeKey, number> = {
+    obsidian_gold: 1,
     purple: 1,
     cyber: 2,
     sunset: 3,

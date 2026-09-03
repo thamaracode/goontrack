@@ -1,6 +1,7 @@
 import { Session, StreakData } from '../types/tracker';
 
-export type MascotMoodState = 'NORMAL' | 'STREAKING' | 'COOL' | 'RECORD' | 'NIGHT' | 'LOST' | 'ACHIEVEMENT' | 'MELTING';
+export type MascotMoodState = 'NORMAL' | 'STREAKING' | 'COOL' | 'RECORD' | 'NIGHT' | 'LOST' | 'ACHIEVEMENT' | 'MELTING' | 'DEAD';
+export type MascotState = MascotMoodState;
 
 export interface MascotStatus {
   state: MascotMoodState;

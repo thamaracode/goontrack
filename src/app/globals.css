@@ -73,20 +73,58 @@ body {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
   }
 }
 
-@keyframes wiggle {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-5deg); }
-  75% { transform: rotate(5deg); }
+@keyframes swimmerBob {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+@keyframes swimmerTail {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(12deg);
+  }
+  75% {
+    transform: rotate(-12deg);
+  }
+}
+
+@keyframes swimmerTurboTail {
+  0%, 100% {
+    transform: rotate(0deg) scaleX(1);
+  }
+  25% {
+    transform: rotate(22deg) scaleX(0.95);
+  }
+  75% {
+    transform: rotate(-22deg) scaleX(0.95);
+  }
 }
 
 .animate-bounce-soft {
   animation: bounceSoft 2.5s infinite ease-in-out;
 }
 
-.animate-wiggle {
-  animation: wiggle 0.4s ease-in-out;
+.animate-swimmer-bob {
+  animation: swimmerBob 2.2s infinite ease-in-out;
 }
+
+.animate-swimmer-tail {
+  transform-origin: 65px 120px;
+  animation: swimmerTail 1.2s infinite ease-in-out;
+}
+
+.animate-swimmer-turbo-tail {
+  transform-origin: 65px 120px;
+  animation: swimmerTurboTail 0.35s infinite ease-in-out;
+}
+

@@ -36,7 +36,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
 
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
 
-  const tileColors = {
+  const tileColors: Record<number, string> = {
     0: 'bg-goon-surfaceLight border-goon-surfaceBorder',
     1: 'bg-goon-purple/40 border-goon-purple/60',
     2: 'bg-goon-purple border-goon-purpleLight',

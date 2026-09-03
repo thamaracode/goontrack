@@ -71,15 +71,34 @@ export interface SummaryStats {
   shortestSession: number;
   weekendRatioPct: number;
   mostActiveHourStr: string;
+  mostActiveDayName: string;
 }
 
-export interface ChronotypeHistogramBucket {
-  label: string;
-  timeRange: string;
+export interface DayOfWeekStat {
+  dayName: string;
+  fullName: string;
+  dayIndex: number;
   sessions: number;
   minutes: number;
   intensityPct: number;
 }
+
+export interface HeatmapTile {
+  date: string;
+  count: number;
+  minutes: number;
+  level: 0 | 1 | 2 | 3 | 4;
+}
+
+export interface ChronotypeHistogramBucket {
+  label: string;
+  hourRange: string;
+  sessions: number;
+  minutes: number;
+  intensityPct: number;
+}
+
+export type TimeOfDayBucket = ChronotypeHistogramBucket;
 
 export interface ExperimentalMetrics {
   consistencyScore: number;
@@ -90,23 +109,26 @@ export interface ExperimentalMetrics {
 }
 
 export interface PersonalRecords {
-  longestStreakDays: number;
-  longestSessionMins: number;
-  mostSessionsInOneDay: number;
-  highestMonthlyVolumeMins: number;
-  earliestSessionTime: string;
-  latestSessionTime: string;
+  longestStreak: number;
+  longestSession: number;
+  shortestSession: number;
+  mostActiveDay: string;
+  mostActiveHour: string;
+  maxSessionsInOneDay: number;
+  bestMonthTotalSessions: number;
+  totalLifetimeHours: number;
 }
 
 export interface MonthlyRecap {
   monthName: string;
   year: number;
   totalSessions: number;
-  totalHours: number;
-  topMood: MoodEmoji;
+  totalMinutes: number;
   longestStreak: number;
-  consistencyGrade: 'S+' | 'A' | 'B' | 'C' | 'D';
-  badgeUnlockedCount: number;
+  mostActiveDay: string;
+  peakHourStr: string;
+  achievementsUnlockedCount: number;
+  topMood: MoodEmoji;
 }
 
 export interface UserSettings {
